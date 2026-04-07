@@ -63,7 +63,7 @@ public class ImportacaoService {
                     show.setValorAdiantamento(parseCache(get(cols, 10)));
                     show.setContratante(limpar(get(cols, 11)));
                     show.setEndereco(limpar(get(cols, 12)));
-                    show.setStatus("CONFIRMADO");
+                    show.setStatus(data.isAfter(java.time.LocalDate.now()) ? "PENDENTE" : "CONFIRMADO");
 
                     // Ignora shows sem evento válido
                     if (show.getEvento() == null || show.getEvento().isBlank()) continue;
