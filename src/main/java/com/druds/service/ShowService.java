@@ -55,8 +55,9 @@ public class ShowService {
         List<Show> paraAtualizar = shows.stream()
                 .filter(s -> {
                     boolean confirmar = "PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje);
-                    boolean mesErrado = !s.getData().getMonthValue().equals(s.getMes())
-                                    || !s.getData().getYear().equals(s.getAno());
+                    boolean mesErrado = s.getMes() == null || s.getAno() == null
+                                    || s.getData().getMonthValue() != s.getMes()
+                                    || s.getData().getYear() != s.getAno();
                     return confirmar || mesErrado;
                 })
                 .collect(Collectors.toList());
