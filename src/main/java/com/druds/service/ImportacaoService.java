@@ -52,9 +52,7 @@ public class ImportacaoService {
                     Show show = new Show();
                     show.setData(data);
                     show.setAno(data.getYear());
-
-                    String mes = get(cols, 3);
-                    show.setMes(mesParaNumero(mes));
+                    show.setMes(data.getMonthValue()); // sempre derivar do campo data
 
                     show.setEvento(limpar(get(cols, 4)));
                     show.setHoraInicio(horaValida(get(cols, 5)));
