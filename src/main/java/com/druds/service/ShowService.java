@@ -3,22 +3,40 @@ package com.druds.service;
 import com.druds.dto.ShowDTO;
 import com.druds.exception.ShowNotFoundException;
 import com.druds.model.Show;
+import com.druds.repository.BloqueioAgendaRepository;
 import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ShowService {
 
     private final ShowRepository showRepository;
+    private final BloqueioAgendaRepository bloqueioRepository;
 
-    public ShowService(ShowRepository showRepository) {
+    public ShowService(ShowRepository showRepository, BloqueioAgendaRepository bloqueioRepository) {
         this.showRepository = showRepository;
+        this.bloqueioRepository = bloqueioRepository;
     }
 
     public ShowDTO criar(ShowDTO dto) {
-        return toDTO(showRepository.save(toEntity(dto)));
+        Show show = toEntity(dto);
+
+        // Auto-status: PENDENTE se futuro, CONFIRMADO se já passou
+        if (show.getStatus() == null || show.getStatus().isBlank()) {
+            LocalDate hoje = LocalDate.now();
+            show.setStatus(show.getData().isAfter(hoje) ? "PENDENTE" : "CONFIRMADO");
+        }
+
+        // Validar bloqueio de agenda
+        if (bloqueioRepository.existeConflito(show.getData())) {
+            throw new IllegalStateException("A data " + show.getData() + " está bloqueada na agenda.");
+        }
+
+        return toDTO(showRepository.save(show));
     }
 
     public ShowDTO atualizar(Long id, ShowDTO dto) {
@@ -29,7 +47,20 @@ public class ShowService {
     }
 
     public List<ShowDTO> listarTodos() {
-        return showRepository.findAll().stream().map(this::toDTO).toList();
+        LocalDate hoje = LocalDate.now();
+        List<Show> shows = showRepository.findAll();
+
+        // Auto-confirmar shows pendentes cuja data já passou
+        List<Show> paraConfirmar = shows.stream()
+                .filter(s -> "PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje))
+                .collect(Collectors.toList());
+
+        if (!paraConfirmar.isEmpty()) {
+            paraConfirmar.forEach(s -> s.setStatus("CONFIRMADO"));
+            showRepository.saveAll(paraConfirmar);
+        }
+
+        return shows.stream().map(this::toDTO).toList();
     }
 
     public ShowDTO buscarPorId(Long id) {
