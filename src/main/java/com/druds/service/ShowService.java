@@ -50,21 +50,23 @@ public class ShowService {
         LocalDate hoje = LocalDate.now();
         List<Show> shows = showRepository.findAll();
 
-        // Auto-confirmar shows pendentes cuja data já passou
-        // Auto-corrigir shows onde mes/ano estão dessincronizados com a data real
+        // Auto-sincronizar status e mes/ano com a data real
         List<Show> paraAtualizar = shows.stream()
                 .filter(s -> {
-                    boolean confirmar = "PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje);
+                    boolean futuroConfirmado = "CONFIRMADO".equals(s.getStatus()) && s.getData().isAfter(hoje);
+                    boolean passadoPendente  = "PENDENTE".equals(s.getStatus())   && !s.getData().isAfter(hoje);
                     boolean mesErrado = s.getMes() == null || s.getAno() == null
                                     || s.getData().getMonthValue() != s.getMes()
                                     || s.getData().getYear() != s.getAno();
-                    return confirmar || mesErrado;
+                    return futuroConfirmado || passadoPendente || mesErrado;
                 })
                 .collect(Collectors.toList());
 
         if (!paraAtualizar.isEmpty()) {
             paraAtualizar.forEach(s -> {
-                if ("PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje)) {
+                if (s.getData().isAfter(hoje) && !"CANCELADO".equals(s.getStatus())) {
+                    s.setStatus("PENDENTE");
+                } else if (!s.getData().isAfter(hoje) && "PENDENTE".equals(s.getStatus())) {
                     s.setStatus("CONFIRMADO");
                 }
                 s.setMes(s.getData().getMonthValue());
