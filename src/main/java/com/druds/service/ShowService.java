@@ -51,13 +51,25 @@ public class ShowService {
         List<Show> shows = showRepository.findAll();
 
         // Auto-confirmar shows pendentes cuja data já passou
-        List<Show> paraConfirmar = shows.stream()
-                .filter(s -> "PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje))
+        // Auto-corrigir shows onde mes/ano estão dessincronizados com a data real
+        List<Show> paraAtualizar = shows.stream()
+                .filter(s -> {
+                    boolean confirmar = "PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje);
+                    boolean mesErrado = !s.getData().getMonthValue().equals(s.getMes())
+                                    || !s.getData().getYear().equals(s.getAno());
+                    return confirmar || mesErrado;
+                })
                 .collect(Collectors.toList());
 
-        if (!paraConfirmar.isEmpty()) {
-            paraConfirmar.forEach(s -> s.setStatus("CONFIRMADO"));
-            showRepository.saveAll(paraConfirmar);
+        if (!paraAtualizar.isEmpty()) {
+            paraAtualizar.forEach(s -> {
+                if ("PENDENTE".equals(s.getStatus()) && !s.getData().isAfter(hoje)) {
+                    s.setStatus("CONFIRMADO");
+                }
+                s.setMes(s.getData().getMonthValue());
+                s.setAno(s.getData().getYear());
+            });
+            showRepository.saveAll(paraAtualizar);
         }
 
         return shows.stream().map(this::toDTO).toList();
@@ -81,8 +93,14 @@ public class ShowService {
     private void atualizarEntidade(Show show, ShowDTO dto) {
         show.setNome(dto.getNome());
         show.setData(dto.getData());
-        show.setAno(dto.getAno());
-        show.setMes(dto.getMes());
+        // Sempre derivar ano/mes da data real para evitar dessincronia
+        if (dto.getData() != null) {
+            show.setAno(dto.getData().getYear());
+            show.setMes(dto.getData().getMonthValue());
+        } else {
+            show.setAno(dto.getAno());
+            show.setMes(dto.getMes());
+        }
         show.setEvento(dto.getEvento());
         show.setStatus(dto.getStatus());
         show.setHoraInicio(dto.getHoraInicio());

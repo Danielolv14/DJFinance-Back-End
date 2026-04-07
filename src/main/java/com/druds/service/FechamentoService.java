@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Service
 public class FechamentoService {
 
-    private static final LocalDate INICIO_EQUIPE             = LocalDate.of(2023, 3, 1);
+    private static final LocalDate INICIO_EQUIPE             = LocalDate.of(2025, 3, 1);
     private static final LocalDate INICIO_PERCENTUAL_DANIEL  = LocalDate.of(2026, 1, 1);
 
     private static final double DANIEL_FIXO_ANTIGO     = 90.0;
