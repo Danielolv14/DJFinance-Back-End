@@ -15,9 +15,11 @@ public class FechamentoService {
 
     private static final LocalDate INICIO_EQUIPE             = LocalDate.of(2025, 3, 1);
     private static final LocalDate INICIO_PERCENTUAL_DANIEL  = LocalDate.of(2026, 1, 1);
+    private static final LocalDate INICIO_PERCENTUAL_20      = LocalDate.of(2026, 4, 1);
 
     private static final double DANIEL_FIXO_ANTIGO     = 90.0;
-    private static final double DANIEL_PERCENTUAL      = 0.15;
+    private static final double DANIEL_PERCENTUAL_15   = 0.15;
+    private static final double DANIEL_PERCENTUAL_20   = 0.20;
     private static final double DANIEL_TRANSPORTE_DIA  = 40.0;
     private static final double DANIEL_SEM_CACHE       = 110.0;
     private static final double YURI_FIXO_POR_SHOW     = 300.0;
@@ -78,7 +80,12 @@ public class FechamentoService {
 
         double pagAntigos = antigos.size() * DANIEL_FIXO_ANTIGO;
         double pagNovos   = novos.stream()
-                .mapToDouble(s -> temCache(s) ? s.getCache() * DANIEL_PERCENTUAL : DANIEL_SEM_CACHE)
+                .mapToDouble(s -> {
+                    double pct = s.getData().isBefore(INICIO_PERCENTUAL_20)
+                            ? DANIEL_PERCENTUAL_15
+                            : DANIEL_PERCENTUAL_20;
+                    return temCache(s) ? s.getCache() * pct : DANIEL_SEM_CACHE;
+                })
                 .sum();
         Set<LocalDate> dias = novos.stream().map(Show::getData).collect(Collectors.toSet());
         double transporte   = dias.size() * DANIEL_TRANSPORTE_DIA;
