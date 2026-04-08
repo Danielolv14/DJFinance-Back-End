@@ -88,6 +88,12 @@ public class ShowService {
         showRepository.deleteById(id);
     }
 
+    public int deletarDuplicados() {
+        List<Show> duplicados = showRepository.findDuplicados();
+        showRepository.deleteAll(duplicados);
+        return duplicados.size();
+    }
+
     public Show buscarEntidadePorId(Long id) {
         return showRepository.findById(id)
                 .orElseThrow(() -> new ShowNotFoundException(id));

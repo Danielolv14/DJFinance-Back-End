@@ -68,6 +68,12 @@ public class ImportacaoService {
                     // Ignora shows sem evento válido
                     if (show.getEvento() == null || show.getEvento().isBlank()) continue;
 
+                    // Ignora duplicatas (mesma data + mesmo evento já existem no banco)
+                    if (showRepository.existsByDataAndEvento(show.getData(), show.getEvento())) {
+                        erros.add("Linha " + linha + ": duplicado — " + show.getEvento() + " em " + rawData);
+                        continue;
+                    }
+
                     importados.add(show);
                 } catch (Exception e) {
                     erros.add("Linha " + linha + ": " + e.getMessage());
