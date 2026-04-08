@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/shows")
@@ -44,5 +45,14 @@ public class ShowController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         showService.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/duplicados")
+    public ResponseEntity<Map<String, Object>> deletarDuplicados() {
+        int removidos = showService.deletarDuplicados();
+        return ResponseEntity.ok(Map.of(
+            "removidos", removidos,
+            "mensagem", removidos + " show(s) duplicado(s) removido(s)"
+        ));
     }
 }
