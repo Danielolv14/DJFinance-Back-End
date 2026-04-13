@@ -84,7 +84,10 @@ public class FechamentoService {
                     double pct = s.getData().isBefore(INICIO_PERCENTUAL_20)
                             ? DANIEL_PERCENTUAL_15
                             : DANIEL_PERCENTUAL_20;
-                    return temCache(s) ? s.getCache() * pct : DANIEL_SEM_CACHE;
+                    if (!temCache(s)) return DANIEL_SEM_CACHE;
+                    double custos = s.getCustos() != null ? s.getCustos() : 0.0;
+                    double base   = s.getCache() - custos;
+                    return base > 0 ? base * pct : DANIEL_SEM_CACHE;
                 })
                 .sum();
         Set<LocalDate> dias = novos.stream().map(Show::getData).collect(Collectors.toSet());
