@@ -55,9 +55,10 @@ public class ShowService {
                 .filter(s -> {
                     boolean futuroConfirmado = "CONFIRMADO".equals(s.getStatus()) && s.getData().isAfter(hoje);
                     boolean passadoPendente  = "PENDENTE".equals(s.getStatus())   && !s.getData().isAfter(hoje);
-                    boolean mesErrado = s.getMes() == null || s.getAno() == null
-                                    || s.getData().getMonthValue() != s.getMes()
-                                    || s.getData().getYear() != s.getAno();
+                    boolean mesErrado = s.getMes() == null
+                                    || s.getAno() == null
+                                    || !s.getMes().equals(s.getData().getMonthValue())
+                                    || !s.getAno().equals(s.getData().getYear());
                     return futuroConfirmado || passadoPendente || mesErrado;
                 })
                 .collect(Collectors.toList());
