@@ -37,14 +37,18 @@ public class FechamentoService {
 
         List<Show> shows = showRepository.findByDataBetweenOrderByDataAsc(inicio, fim);
 
-        List<Show> showsComEquipe = shows.stream()
+        List<Show> showsParaDaniel = shows.stream()
                 .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
-                .filter(s -> s.getSemCacheEquipe() == null || !s.getSemCacheEquipe())
+                .filter(s -> s.getSemCacheDaniel() == null || !s.getSemCacheDaniel())
+                .toList();
+        List<Show> showsParaYuri = shows.stream()
+                .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
+                .filter(s -> s.getSemCacheYuri() == null || !s.getSemCacheYuri())
                 .toList();
 
         double totalBruto    = calcularTotalBruto(shows);
-        double totalDaniel   = calcularTotalDaniel(showsComEquipe);
-        double totalYuri     = calcularTotalYuri(showsComEquipe);
+        double totalDaniel   = calcularTotalDaniel(showsParaDaniel);
+        double totalYuri     = calcularTotalYuri(showsParaYuri);
         double totalCustos   = calcularTotalCustos(shows);
         double totalImpostos = aliquotaImposto != null
                 ? arredondar(totalBruto * (aliquotaImposto / 100.0))
