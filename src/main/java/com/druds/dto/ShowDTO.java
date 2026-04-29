@@ -24,6 +24,7 @@ public class ShowDTO {
     private String rider;
     private Double custos;
     private String observacoes;
+    private Boolean semCacheEquipe;
 
     public ShowDTO() {}
 
@@ -65,4 +66,6 @@ public class ShowDTO {
     public void setCustos(Double custos) { this.custos = custos; }
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+    public Boolean getSemCacheEquipe() { return semCacheEquipe; }
+    public void setSemCacheEquipe(Boolean semCacheEquipe) { this.semCacheEquipe = semCacheEquipe; }
 }
