@@ -125,7 +125,8 @@ public class ShowService {
         show.setRider(dto.getRider());
         show.setCustos(dto.getCustos());
         show.setObservacoes(dto.getObservacoes());
-        show.setSemCacheEquipe(dto.getSemCacheEquipe() != null ? dto.getSemCacheEquipe() : false);
+        show.setSemCacheDaniel(dto.getSemCacheDaniel() != null ? dto.getSemCacheDaniel() : false);
+        show.setSemCacheYuri(dto.getSemCacheYuri() != null ? dto.getSemCacheYuri() : false);
     }
 
     private Show toEntity(ShowDTO dto) {
@@ -155,7 +156,8 @@ public class ShowService {
         dto.setRider(show.getRider());
         dto.setCustos(show.getCustos());
         dto.setObservacoes(show.getObservacoes());
-        dto.setSemCacheEquipe(show.getSemCacheEquipe());
+        dto.setSemCacheDaniel(show.getSemCacheDaniel());
+        dto.setSemCacheYuri(show.getSemCacheYuri());
         return dto;
     }
 }
