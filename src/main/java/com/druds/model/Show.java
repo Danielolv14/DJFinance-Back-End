@@ -36,6 +36,7 @@ public class Show {
     private Double custos;
     @Column(columnDefinition = "TEXT")
     private String observacoes;
+    private Boolean semCacheEquipe = false;
 
     public Show() {}
 
@@ -77,4 +78,6 @@ public class Show {
     public void setCustos(Double custos) { this.custos = custos; }
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+    public Boolean getSemCacheEquipe() { return semCacheEquipe; }
+    public void setSemCacheEquipe(Boolean semCacheEquipe) { this.semCacheEquipe = semCacheEquipe; }
 }
