@@ -17,11 +17,10 @@ public class FechamentoService {
     private static final LocalDate INICIO_PERCENTUAL_DANIEL  = LocalDate.of(2026, 1, 1);
     private static final LocalDate INICIO_PERCENTUAL_20      = LocalDate.of(2026, 4, 1);
 
-    private static final double DANIEL_FIXO_ANTIGO     = 90.0;
-    private static final double DANIEL_PERCENTUAL_15   = 0.15;
+    private static final double DANIEL_FIXO_ANTIGO     = 50.0;
+    private static final double DANIEL_PERCENTUAL_10   = 0.10;
     private static final double DANIEL_PERCENTUAL_20   = 0.20;
     private static final double DANIEL_TRANSPORTE_DIA  = 40.0;
-    private static final double DANIEL_SEM_CACHE       = 110.0;
     private static final double YURI_FIXO_POR_SHOW     = 300.0;
 
     private final ShowRepository showRepository;
@@ -40,6 +39,7 @@ public class FechamentoService {
 
         List<Show> showsComEquipe = shows.stream()
                 .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
+                .filter(s -> s.getSemCacheEquipe() == null || !s.getSemCacheEquipe())
                 .toList();
 
         double totalBruto    = calcularTotalBruto(shows);
@@ -82,12 +82,12 @@ public class FechamentoService {
         double pagNovos   = novos.stream()
                 .mapToDouble(s -> {
                     double pct = s.getData().isBefore(INICIO_PERCENTUAL_20)
-                            ? DANIEL_PERCENTUAL_15
+                            ? DANIEL_PERCENTUAL_10
                             : DANIEL_PERCENTUAL_20;
-                    if (!temCache(s)) return DANIEL_SEM_CACHE;
+                    if (!temCache(s)) return 0.0;
                     double custos = s.getCustos() != null ? s.getCustos() : 0.0;
                     double base   = s.getCache() - custos;
-                    return base > 0 ? base * pct : DANIEL_SEM_CACHE;
+                    return base > 0 ? base * pct : 0.0;
                 })
                 .sum();
         Set<LocalDate> dias = novos.stream().map(Show::getData).collect(Collectors.toSet());
