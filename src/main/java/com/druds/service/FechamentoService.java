@@ -21,6 +21,7 @@ public class FechamentoService {
     private static final double DANIEL_PERCENTUAL_10   = 0.10;
     private static final double DANIEL_PERCENTUAL_20   = 0.20;
     private static final double DANIEL_TRANSPORTE_DIA  = 40.0;
+    private static final double DANIEL_SEM_CACHE       = 110.0;
     private static final double YURI_FIXO_POR_SHOW     = 300.0;
 
     private final ShowRepository showRepository;
@@ -85,10 +86,10 @@ public class FechamentoService {
         double pagAntigos = antigos.size() * DANIEL_FIXO_ANTIGO;
         double pagNovos   = novos.stream()
                 .mapToDouble(s -> {
+                    if (!temCache(s)) return DANIEL_SEM_CACHE;
                     double pct = s.getData().isBefore(INICIO_PERCENTUAL_20)
                             ? DANIEL_PERCENTUAL_10
                             : DANIEL_PERCENTUAL_20;
-                    if (!temCache(s)) return 0.0;
                     double custos = s.getCustos() != null ? s.getCustos() : 0.0;
                     double base   = s.getCache() - custos;
                     return base > 0 ? base * pct : 0.0;
