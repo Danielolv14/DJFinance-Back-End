@@ -20,17 +20,20 @@ public class StatsController {
     }
 
     @GetMapping("/contratantes")
-    public ResponseEntity<List<StatsDTO>> contratantes() {
-        return ResponseEntity.ok(statsService.statsPorContratante());
+    public ResponseEntity<List<StatsDTO>> contratantes(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(statsService.statsPorContratante(dj));
     }
 
     @GetMapping("/locais")
-    public ResponseEntity<List<StatsDTO>> locais() {
-        return ResponseEntity.ok(statsService.statsPorLocal());
+    public ResponseEntity<List<StatsDTO>> locais(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(statsService.statsPorLocal(dj));
     }
 
     @GetMapping("/projecao")
-    public ResponseEntity<List<ProjecaoDTO>> projecao() {
-        return ResponseEntity.ok(statsService.projecaoFaturamento());
+    public ResponseEntity<List<ProjecaoDTO>> projecao(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(statsService.projecaoFaturamento(dj));
     }
 }

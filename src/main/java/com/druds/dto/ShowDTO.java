@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 public class ShowDTO {
     private Long id;
+    private String dj;
     private String nome;
     @NotNull(message = "A data do show é obrigatória")
     private LocalDate data;
@@ -31,6 +32,8 @@ public class ShowDTO {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public String getDj() { return dj; }
+    public void setDj(String dj) { this.dj = dj; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public LocalDate getData() { return data; }

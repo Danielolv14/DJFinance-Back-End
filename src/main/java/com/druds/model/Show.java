@@ -12,6 +12,9 @@ public class Show {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 20)
+    private String dj;
+
     private String nome;
 
     @NotNull(message = "A data do show é obrigatória")
@@ -36,13 +39,15 @@ public class Show {
     private Double custos;
     @Column(columnDefinition = "TEXT")
     private String observacoes;
-    private Boolean semCacheDaniel = false;
-    private Boolean semCacheYuri   = false;
+    private Boolean semCacheDaniel;
+    private Boolean semCacheYuri;
 
     public Show() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public String getDj() { return dj; }
+    public void setDj(String dj) { this.dj = dj; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public LocalDate getData() { return data; }

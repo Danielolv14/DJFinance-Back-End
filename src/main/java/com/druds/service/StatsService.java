@@ -7,7 +7,6 @@ import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,26 +24,21 @@ public class StatsService {
         this.showRepository = showRepository;
     }
 
-    // ── CRM: stats por contratante ─────────────────────────────────────────
-    public List<StatsDTO> statsPorContratante() {
-        List<Show> todos = showRepository.findAll();
+    public List<StatsDTO> statsPorContratante(String dj) {
+        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
         return agruparPorCampo(todos, Show::getContratante);
     }
 
-    // ── CRM: stats por local ───────────────────────────────────────────────
-    public List<StatsDTO> statsPorLocal() {
-        List<Show> todos = showRepository.findAll();
+    public List<StatsDTO> statsPorLocal(String dj) {
+        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
         return agruparPorCampo(todos, s -> s.getEndereco() != null ? s.getEndereco() : s.getContratante());
     }
 
-    // ── Projeção: próximos 6 meses + 3 meses passados ─────────────────────
-    public List<ProjecaoDTO> projecaoFaturamento() {
-        List<Show> todos = showRepository.findAll();
+    public List<ProjecaoDTO> projecaoFaturamento(String dj) {
+        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
         LocalDate hoje   = LocalDate.now();
-
         List<ProjecaoDTO> resultado = new ArrayList<>();
 
-        // 3 meses passados + mês atual + 5 meses futuros = 9 meses
         for (int delta = -3; delta <= 5; delta++) {
             LocalDate ref = hoje.withDayOfMonth(1).plusMonths(delta);
             int mes = ref.getMonthValue();
@@ -71,7 +65,10 @@ public class StatsService {
         return resultado;
     }
 
-    // ── Helper: agrupa shows por um campo string ───────────────────────────
+    private String normalizarDj(String dj) {
+        return (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
+    }
+
     private List<StatsDTO> agruparPorCampo(List<Show> todos, java.util.function.Function<Show,String> campo) {
         Map<String, List<Show>> agrupado = todos.stream()
                 .filter(s -> campo.apply(s) != null && !campo.apply(s).isBlank())

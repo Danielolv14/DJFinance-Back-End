@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 @Service
 public class FechamentoService {
 
-    private static final LocalDate INICIO_EQUIPE             = LocalDate.of(2025, 3, 1);
-    private static final LocalDate INICIO_PERCENTUAL_DANIEL  = LocalDate.of(2026, 1, 1);
-    private static final LocalDate INICIO_PERCENTUAL_20      = LocalDate.of(2026, 4, 1);
+    private static final LocalDate INICIO_EQUIPE            = LocalDate.of(2025, 3, 1);
+    private static final LocalDate INICIO_PERCENTUAL_DANIEL = LocalDate.of(2026, 1, 1);
+    private static final LocalDate INICIO_PERCENTUAL_20     = LocalDate.of(2026, 4, 1);
 
-    private static final double DANIEL_FIXO_ANTIGO     = 50.0;
-    private static final double DANIEL_PERCENTUAL_10   = 0.10;
-    private static final double DANIEL_PERCENTUAL_20   = 0.20;
-    private static final double DANIEL_TRANSPORTE_DIA  = 40.0;
-    private static final double DANIEL_SEM_CACHE       = 110.0;
-    private static final double YURI_FIXO_POR_SHOW     = 300.0;
+    private static final double DANIEL_FIXO_ANTIGO    = 50.0;
+    private static final double DANIEL_PERCENTUAL_10  = 0.10;
+    private static final double DANIEL_PERCENTUAL_20  = 0.20;
+    private static final double DANIEL_TRANSPORTE_DIA = 40.0;
+    private static final double DANIEL_SEM_CACHE      = 110.0;
+    private static final double YURI_FIXO_POR_SHOW    = 300.0;
 
     private final ShowRepository showRepository;
     private final ShowService showService;
@@ -32,11 +32,12 @@ public class FechamentoService {
         this.showService = showService;
     }
 
-    public FechamentoResponseDTO calcular(int mes, int ano, Double aliquotaImposto) {
+    public FechamentoResponseDTO calcular(int mes, int ano, Double aliquotaImposto, String dj) {
+        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
         LocalDate inicio = LocalDate.of(ano, mes, 1);
         LocalDate fim    = inicio.withDayOfMonth(inicio.lengthOfMonth());
 
-        List<Show> shows = showRepository.findByDataBetweenOrderByDataAsc(inicio, fim);
+        List<Show> shows = showRepository.findByDjAndDataBetweenOrderByDataAsc(djFiltro, inicio, fim);
 
         List<Show> showsParaDaniel = shows.stream()
                 .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))

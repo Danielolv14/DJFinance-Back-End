@@ -13,7 +13,24 @@ import java.util.List;
 @Repository
 public interface ShowRepository extends JpaRepository<Show, Long> {
 
-    List<Show> findByDataBetweenOrderByDataAsc(LocalDate inicio, LocalDate fim);
+    @Query("""
+        SELECT s FROM Show s
+        WHERE (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))
+        ORDER BY s.data ASC
+    """)
+    List<Show> findByDjOrderByDataAsc(@Param("dj") String dj);
+
+    @Query("""
+        SELECT s FROM Show s
+        WHERE (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))
+          AND s.data BETWEEN :inicio AND :fim
+        ORDER BY s.data ASC
+    """)
+    List<Show> findByDjAndDataBetweenOrderByDataAsc(
+        @Param("dj") String dj,
+        @Param("inicio") LocalDate inicio,
+        @Param("fim") LocalDate fim
+    );
 
     boolean existsByDataAndEvento(LocalDate data, String evento);
 

@@ -32,8 +32,9 @@ public class ShowController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ShowDTO>> listarTodos() {
-        return ResponseEntity.ok(showService.listarTodos());
+    public ResponseEntity<List<ShowDTO>> listarTodos(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(showService.listarTodos(dj));
     }
 
     @GetMapping("/{id}")

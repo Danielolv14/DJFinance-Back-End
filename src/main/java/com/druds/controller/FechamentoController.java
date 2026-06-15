@@ -20,7 +20,8 @@ public class FechamentoController {
     public ResponseEntity<FechamentoResponseDTO> calcular(
             @RequestParam int mes,
             @RequestParam int ano,
-            @RequestParam(required = false) Double imposto) {
-        return ResponseEntity.ok(fechamentoService.calcular(mes, ano, imposto));
+            @RequestParam(required = false) Double imposto,
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(fechamentoService.calcular(mes, ano, imposto, dj));
     }
 }
