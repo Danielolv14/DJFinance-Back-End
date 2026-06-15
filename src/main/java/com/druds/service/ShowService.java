@@ -25,13 +25,15 @@ public class ShowService {
     public ShowDTO criar(ShowDTO dto) {
         Show show = toEntity(dto);
 
-        // Auto-status: PENDENTE se futuro, CONFIRMADO se já passou
+        if (show.getDj() == null || show.getDj().isBlank()) {
+            show.setDj("DRUDS");
+        }
+
         if (show.getStatus() == null || show.getStatus().isBlank()) {
             LocalDate hoje = LocalDate.now();
             show.setStatus(show.getData().isAfter(hoje) ? "PENDENTE" : "CONFIRMADO");
         }
 
-        // Validar bloqueio de agenda
         if (bloqueioRepository.existeConflito(show.getData())) {
             throw new IllegalStateException("A data " + show.getData() + " está bloqueada na agenda.");
         }
@@ -46,11 +48,11 @@ public class ShowService {
         return toDTO(showRepository.save(show));
     }
 
-    public List<ShowDTO> listarTodos() {
+    public List<ShowDTO> listarTodos(String dj) {
+        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
         LocalDate hoje = LocalDate.now();
-        List<Show> shows = showRepository.findAll();
+        List<Show> shows = showRepository.findByDjOrderByDataAsc(djFiltro);
 
-        // Auto-sincronizar status e mes/ano com a data real
         List<Show> paraAtualizar = shows.stream()
                 .filter(s -> {
                     boolean futuroConfirmado = "CONFIRMADO".equals(s.getStatus()) && s.getData().isAfter(hoje);
@@ -101,9 +103,13 @@ public class ShowService {
     }
 
     private void atualizarEntidade(Show show, ShowDTO dto) {
+        if (dto.getDj() != null && !dto.getDj().isBlank()) {
+            show.setDj(dto.getDj().toUpperCase());
+        } else if (show.getDj() == null) {
+            show.setDj("DRUDS");
+        }
         show.setNome(dto.getNome());
         show.setData(dto.getData());
-        // Sempre derivar ano/mes da data real para evitar dessincronia
         if (dto.getData() != null) {
             show.setAno(dto.getData().getYear());
             show.setMes(dto.getData().getMonthValue());
@@ -138,6 +144,7 @@ public class ShowService {
     public ShowDTO toDTO(Show show) {
         ShowDTO dto = new ShowDTO();
         dto.setId(show.getId());
+        dto.setDj(show.getDj() != null ? show.getDj() : "DRUDS");
         dto.setNome(show.getNome());
         dto.setData(show.getData());
         dto.setAno(show.getAno());

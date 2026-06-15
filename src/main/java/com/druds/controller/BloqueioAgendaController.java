@@ -21,18 +21,22 @@ public class BloqueioAgendaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BloqueioAgenda>> listar() {
-        return ResponseEntity.ok(bloqueioRepository.findAll());
+    public ResponseEntity<List<BloqueioAgenda>> listar(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
+        return ResponseEntity.ok(bloqueioRepository.findByDj(dj.toUpperCase()));
     }
 
     @PostMapping
-    public ResponseEntity<?> criar(@RequestBody BloqueioAgenda bloqueio) {
+    public ResponseEntity<?> criar(
+            @RequestParam(required = false, defaultValue = "DRUDS") String dj,
+            @RequestBody BloqueioAgenda bloqueio) {
         if (bloqueio.getDataInicio() == null || bloqueio.getDataFim() == null) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Data início e fim são obrigatórias"));
         }
         if (bloqueio.getDataFim().isBefore(bloqueio.getDataInicio())) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Data fim não pode ser antes da data início"));
         }
+        bloqueio.setDj(dj.toUpperCase());
         return ResponseEntity.status(HttpStatus.CREATED).body(bloqueioRepository.save(bloqueio));
     }
 
