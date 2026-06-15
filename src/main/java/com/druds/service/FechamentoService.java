@@ -40,17 +40,19 @@ public class FechamentoService {
         List<Show> shows = showRepository.findByDjAndDataBetweenOrderByDataAsc(djFiltro, inicio, fim);
 
         List<Show> showsParaDaniel = shows.stream()
-                .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
                 .filter(s -> s.getSemCacheDaniel() == null || !s.getSemCacheDaniel())
-                .toList();
-        List<Show> showsParaYuri = shows.stream()
-                .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
-                .filter(s -> s.getSemCacheYuri() == null || !s.getSemCacheYuri())
                 .toList();
 
         double totalBruto    = calcularTotalBruto(shows);
-        double totalDaniel   = calcularTotalDaniel(showsParaDaniel);
-        double totalYuri     = calcularTotalYuri(showsParaYuri);
+        double totalDaniel   = "BRAICHI".equals(djFiltro)
+                ? calcularDanielBraichi(showsParaDaniel)
+                : calcularDanielDruds(showsParaDaniel);
+        double totalYuri     = "BRAICHI".equals(djFiltro)
+                ? 0.0
+                : calcularYuriDruds(shows.stream()
+                        .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
+                        .filter(s -> s.getSemCacheYuri() == null || !s.getSemCacheYuri())
+                        .toList());
         double totalCustos   = calcularTotalCustos(shows);
         double totalImpostos = aliquotaImposto != null
                 ? arredondar(totalBruto * (aliquotaImposto / 100.0))
@@ -78,10 +80,13 @@ public class FechamentoService {
                 .sum();
     }
 
-    private double calcularTotalDaniel(List<Show> showsComEquipe) {
-        List<Show> antigos = showsComEquipe.stream()
+    // ── DRUDS: R$50 fixo (mar-dez 2025), 10% (jan-mar 2026), 20% (abr 2026+) + transporte ──
+    private double calcularDanielDruds(List<Show> showsComEquipe) {
+        List<Show> comEquipe = showsComEquipe.stream()
+                .filter(s -> !s.getData().isBefore(INICIO_EQUIPE)).toList();
+        List<Show> antigos = comEquipe.stream()
                 .filter(s -> s.getData().isBefore(INICIO_PERCENTUAL_DANIEL)).toList();
-        List<Show> novos   = showsComEquipe.stream()
+        List<Show> novos   = comEquipe.stream()
                 .filter(s -> !s.getData().isBefore(INICIO_PERCENTUAL_DANIEL)).toList();
 
         double pagAntigos = antigos.size() * DANIEL_FIXO_ANTIGO;
@@ -102,7 +107,14 @@ public class FechamentoService {
         return pagAntigos + pagNovos + transporte;
     }
 
-    private double calcularTotalYuri(List<Show> showsComEquipe) {
+    // ── BRAICHI: 10% do cachê bruto de cada show ──
+    private double calcularDanielBraichi(List<Show> shows) {
+        return shows.stream()
+                .mapToDouble(s -> temCache(s) ? s.getCache() * DANIEL_PERCENTUAL_10 : 0.0)
+                .sum();
+    }
+
+    private double calcularYuriDruds(List<Show> showsComEquipe) {
         return showsComEquipe.size() * YURI_FIXO_POR_SHOW;
     }
 
