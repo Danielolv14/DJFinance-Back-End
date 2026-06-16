@@ -133,6 +133,8 @@ public class ShowService {
         show.setObservacoes(dto.getObservacoes());
         show.setSemCacheDaniel(dto.getSemCacheDaniel() != null ? dto.getSemCacheDaniel() : false);
         show.setSemCacheYuri(dto.getSemCacheYuri() != null ? dto.getSemCacheYuri() : false);
+        show.setTemProdutor(dto.getTemProdutor() != null ? dto.getTemProdutor() : false);
+        show.setValorProdutor(dto.getValorProdutor());
     }
 
     private Show toEntity(ShowDTO dto) {
@@ -165,6 +167,8 @@ public class ShowService {
         dto.setObservacoes(show.getObservacoes());
         dto.setSemCacheDaniel(show.getSemCacheDaniel());
         dto.setSemCacheYuri(show.getSemCacheYuri());
+        dto.setTemProdutor(show.getTemProdutor());
+        dto.setValorProdutor(show.getValorProdutor());
         return dto;
     }
 }
