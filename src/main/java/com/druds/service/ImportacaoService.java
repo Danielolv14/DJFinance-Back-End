@@ -24,7 +24,7 @@ public class ImportacaoService {
         this.showRepository = showRepository;
     }
 
-    public ImportacaoResultado importarCSV(MultipartFile arquivo) throws Exception {
+    public ImportacaoResultado importarCSV(MultipartFile arquivo, String dj) throws Exception {
         List<Show> importados = new ArrayList<>();
         List<String> erros    = new ArrayList<>();
         int linha = 0;
@@ -50,9 +50,10 @@ public class ImportacaoService {
 
                 try {
                     Show show = new Show();
+                    show.setDj(dj);
                     show.setData(data);
                     show.setAno(data.getYear());
-                    show.setMes(data.getMonthValue()); // sempre derivar do campo data
+                    show.setMes(data.getMonthValue());
 
                     show.setEvento(limpar(get(cols, 4)));
                     show.setHoraInicio(horaValida(get(cols, 5)));
