@@ -35,6 +35,18 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
     boolean existsByDataAndEvento(LocalDate data, String evento);
 
     @Query("""
+        SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END
+        FROM Show s
+        WHERE s.data = :data AND s.evento = :evento
+          AND (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))
+    """)
+    boolean existsByDataAndEventoParaDj(
+        @Param("data") LocalDate data,
+        @Param("evento") String evento,
+        @Param("dj") String dj
+    );
+
+    @Query("""
         SELECT s FROM Show s WHERE s.id NOT IN (
             SELECT MIN(s2.id) FROM Show s2
             WHERE s2.data IS NOT NULL AND s2.evento IS NOT NULL
