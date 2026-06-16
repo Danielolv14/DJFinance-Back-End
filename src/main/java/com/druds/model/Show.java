@@ -41,6 +41,8 @@ public class Show {
     private String observacoes;
     private Boolean semCacheDaniel;
     private Boolean semCacheYuri;
+    private Boolean temProdutor;
+    private Double valorProdutor;
 
     public Show() {}
 
@@ -88,4 +90,8 @@ public class Show {
     public void setSemCacheDaniel(Boolean semCacheDaniel) { this.semCacheDaniel = semCacheDaniel; }
     public Boolean getSemCacheYuri() { return semCacheYuri; }
     public void setSemCacheYuri(Boolean semCacheYuri) { this.semCacheYuri = semCacheYuri; }
+    public Boolean getTemProdutor() { return temProdutor; }
+    public void setTemProdutor(Boolean temProdutor) { this.temProdutor = temProdutor; }
+    public Double getValorProdutor() { return valorProdutor; }
+    public void setValorProdutor(Double valorProdutor) { this.valorProdutor = valorProdutor; }
 }

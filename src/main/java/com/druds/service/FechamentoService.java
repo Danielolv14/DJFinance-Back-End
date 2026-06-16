@@ -53,11 +53,12 @@ public class FechamentoService {
                         .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
                         .filter(s -> s.getSemCacheYuri() == null || !s.getSemCacheYuri())
                         .toList());
-        double totalCustos   = calcularTotalCustos(shows);
-        double totalImpostos = aliquotaImposto != null
+        double totalCustos    = calcularTotalCustos(shows);
+        double totalProdutor  = "BRAICHI".equals(djFiltro) ? calcularTotalProdutor(shows) : 0.0;
+        double totalImpostos  = aliquotaImposto != null
                 ? arredondar(totalBruto * (aliquotaImposto / 100.0))
                 : 0.0;
-        double lucroLiquido  = totalBruto - totalDaniel - totalYuri - totalCustos - totalImpostos;
+        double lucroLiquido   = totalBruto - totalDaniel - totalYuri - totalCustos - totalProdutor - totalImpostos;
 
         FechamentoResponseDTO r = new FechamentoResponseDTO();
         r.setMes(mes);
@@ -121,6 +122,13 @@ public class FechamentoService {
     private double calcularTotalCustos(List<Show> shows) {
         return shows.stream()
                 .mapToDouble(s -> s.getCustos() != null ? s.getCustos() : 0.0)
+                .sum();
+    }
+
+    private double calcularTotalProdutor(List<Show> shows) {
+        return shows.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getTemProdutor()))
+                .mapToDouble(s -> s.getValorProdutor() != null ? s.getValorProdutor() : 0.0)
                 .sum();
     }
 
