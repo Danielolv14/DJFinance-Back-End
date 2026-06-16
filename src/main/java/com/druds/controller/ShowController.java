@@ -49,8 +49,9 @@ public class ShowController {
     }
 
     @DeleteMapping("/duplicados")
-    public ResponseEntity<Map<String, Object>> deletarDuplicados() {
-        int removidos = showService.deletarDuplicados();
+    public ResponseEntity<Map<String, Object>> deletarDuplicados(
+            @RequestParam(defaultValue = "DRUDS") String dj) {
+        int removidos = showService.deletarDuplicados(dj);
         return ResponseEntity.ok(Map.of(
             "removidos", removidos,
             "mensagem", removidos + " show(s) duplicado(s) removido(s)"

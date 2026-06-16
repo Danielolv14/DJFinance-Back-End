@@ -50,16 +50,18 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
         SELECT s FROM Show s WHERE s.id NOT IN (
             SELECT MIN(s2.id) FROM Show s2
             WHERE s2.data IS NOT NULL AND s2.evento IS NOT NULL
+              AND (s2.dj = :dj OR (:dj = 'DRUDS' AND s2.dj IS NULL))
             GROUP BY s2.data, s2.evento
         ) AND s.data IS NOT NULL AND s.evento IS NOT NULL
+          AND (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))
     """)
-    List<Show> findDuplicados();
+    List<Show> findDuplicados(@Param("dj") String dj);
 
     @Modifying
-    @Query("UPDATE Show s SET s.endereco = :para WHERE s.endereco = :de")
-    int atualizarEndereco(@Param("de") String de, @Param("para") String para);
+    @Query("UPDATE Show s SET s.endereco = :para WHERE s.endereco = :de AND (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))")
+    int atualizarEndereco(@Param("de") String de, @Param("para") String para, @Param("dj") String dj);
 
     @Modifying
-    @Query("UPDATE Show s SET s.contratante = :para WHERE s.contratante = :de")
-    int atualizarContratante(@Param("de") String de, @Param("para") String para);
+    @Query("UPDATE Show s SET s.contratante = :para WHERE s.contratante = :de AND (s.dj = :dj OR (:dj = 'DRUDS' AND s.dj IS NULL))")
+    int atualizarContratante(@Param("de") String de, @Param("para") String para, @Param("dj") String dj);
 }

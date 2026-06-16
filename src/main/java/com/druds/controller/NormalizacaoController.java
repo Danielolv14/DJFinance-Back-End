@@ -20,7 +20,9 @@ public class NormalizacaoController {
 
     @PutMapping("/normalizar-local")
     @Transactional
-    public ResponseEntity<Map<String, Object>> normalizarLocal(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, Object>> normalizarLocal(
+            @RequestBody Map<String, String> body,
+            @RequestParam(defaultValue = "DRUDS") String dj) {
         String de   = body.get("de");
         String para = body.get("para");
 
@@ -28,7 +30,8 @@ public class NormalizacaoController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
         }
 
-        int atualizados = showRepository.atualizarEndereco(de, para);
+        String djFiltro = dj.toUpperCase();
+        int atualizados = showRepository.atualizarEndereco(de, para, djFiltro);
 
         return ResponseEntity.ok(Map.of(
             "mensagem", atualizados + " show(s) atualizados de \"" + de + "\" para \"" + para + "\"",
@@ -38,7 +41,9 @@ public class NormalizacaoController {
 
     @PutMapping("/normalizar-contratante")
     @Transactional
-    public ResponseEntity<Map<String, Object>> normalizarContratante(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, Object>> normalizarContratante(
+            @RequestBody Map<String, String> body,
+            @RequestParam(defaultValue = "DRUDS") String dj) {
         String de   = body.get("de");
         String para = body.get("para");
 
@@ -46,7 +51,8 @@ public class NormalizacaoController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
         }
 
-        int atualizados = showRepository.atualizarContratante(de, para);
+        String djFiltro = dj.toUpperCase();
+        int atualizados = showRepository.atualizarContratante(de, para, djFiltro);
 
         return ResponseEntity.ok(Map.of(
             "mensagem", atualizados + " show(s) atualizados de \"" + de + "\" para \"" + para + "\"",

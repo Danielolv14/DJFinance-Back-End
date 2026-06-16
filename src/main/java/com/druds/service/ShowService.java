@@ -91,8 +91,9 @@ public class ShowService {
         showRepository.deleteById(id);
     }
 
-    public int deletarDuplicados() {
-        List<Show> duplicados = showRepository.findDuplicados();
+    public int deletarDuplicados(String dj) {
+        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
+        List<Show> duplicados = showRepository.findDuplicados(djFiltro);
         showRepository.deleteAll(duplicados);
         return duplicados.size();
     }

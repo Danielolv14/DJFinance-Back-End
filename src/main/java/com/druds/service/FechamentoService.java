@@ -69,6 +69,7 @@ public class FechamentoService {
         r.setTotalYuri(arredondar(totalYuri));
         r.setTotalCustos(arredondar(totalCustos));
         r.setTotalImpostos(totalImpostos);
+        r.setTotalProdutor(arredondar(totalProdutor));
         r.setLucroLiquido(arredondar(lucroLiquido));
         r.setShows(shows.stream().map(showService::toDTO).toList());
 

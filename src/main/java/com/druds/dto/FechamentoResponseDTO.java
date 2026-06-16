@@ -12,6 +12,7 @@ public class FechamentoResponseDTO {
     private Double totalYuri;
     private Double totalCustos;
     private Double totalImpostos;
+    private Double totalProdutor;
     private Double lucroLiquido;
     private List<ShowDTO> shows;
 
@@ -33,6 +34,8 @@ public class FechamentoResponseDTO {
     public void setTotalCustos(Double v) { this.totalCustos = v; }
     public Double getTotalImpostos() { return totalImpostos; }
     public void setTotalImpostos(Double v) { this.totalImpostos = v; }
+    public Double getTotalProdutor() { return totalProdutor; }
+    public void setTotalProdutor(Double v) { this.totalProdutor = v; }
     public Double getLucroLiquido() { return lucroLiquido; }
     public void setLucroLiquido(Double v) { this.lucroLiquido = v; }
     public List<ShowDTO> getShows() { return shows; }
