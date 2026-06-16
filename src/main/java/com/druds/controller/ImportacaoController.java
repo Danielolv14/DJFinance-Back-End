@@ -19,9 +19,11 @@ public class ImportacaoController {
     }
 
     @PostMapping("/importar")
-    public ResponseEntity<Map<String, Object>> importar(@RequestParam("arquivo") MultipartFile arquivo) {
+    public ResponseEntity<Map<String, Object>> importar(
+            @RequestParam("arquivo") MultipartFile arquivo,
+            @RequestParam(value = "dj", defaultValue = "DRUDS") String dj) {
         try {
-            var resultado = importacaoService.importarCSV(arquivo);
+            var resultado = importacaoService.importarCSV(arquivo, dj.toUpperCase());
             return ResponseEntity.ok(Map.of(
                 "importados", resultado.importados(),
                 "erros",      resultado.erros(),
