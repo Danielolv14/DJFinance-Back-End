@@ -19,6 +19,7 @@ public interface BloqueioAgendaRepository extends JpaRepository<BloqueioAgenda, 
     @Query("""
         SELECT COUNT(b) > 0 FROM BloqueioAgenda b
         WHERE b.dataInicio <= :data AND b.dataFim >= :data
+          AND (b.dj = :dj OR (:dj = 'DRUDS' AND b.dj IS NULL))
     """)
-    boolean existeConflito(@Param("data") LocalDate data);
+    boolean existeConflito(@Param("data") LocalDate data, @Param("dj") String dj);
 }
