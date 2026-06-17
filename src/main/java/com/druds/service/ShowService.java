@@ -34,7 +34,8 @@ public class ShowService {
             show.setStatus(show.getData().isAfter(hoje) ? "PENDENTE" : "CONFIRMADO");
         }
 
-        if (bloqueioRepository.existeConflito(show.getData())) {
+        String djShow = (show.getDj() == null || show.getDj().isBlank()) ? "DRUDS" : show.getDj();
+        if (bloqueioRepository.existeConflito(show.getData(), djShow)) {
             throw new IllegalStateException("A data " + show.getData() + " está bloqueada na agenda.");
         }
 
