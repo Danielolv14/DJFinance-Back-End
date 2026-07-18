@@ -29,6 +29,7 @@ public class ShowDTO {
     private Boolean semCacheYuri;
     private Boolean temProdutor;
     private Double valorProdutor;
+    private String googleEventId;
 
     public ShowDTO() {}
 
@@ -80,4 +81,6 @@ public class ShowDTO {
     public void setTemProdutor(Boolean temProdutor) { this.temProdutor = temProdutor; }
     public Double getValorProdutor() { return valorProdutor; }
     public void setValorProdutor(Double valorProdutor) { this.valorProdutor = valorProdutor; }
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
 }

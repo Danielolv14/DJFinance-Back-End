@@ -16,10 +16,14 @@ public class ShowService {
 
     private final ShowRepository showRepository;
     private final BloqueioAgendaRepository bloqueioRepository;
+    private final GoogleCalendarService googleCalendarService;
 
-    public ShowService(ShowRepository showRepository, BloqueioAgendaRepository bloqueioRepository) {
+    public ShowService(ShowRepository showRepository,
+                       BloqueioAgendaRepository bloqueioRepository,
+                       GoogleCalendarService googleCalendarService) {
         this.showRepository = showRepository;
         this.bloqueioRepository = bloqueioRepository;
+        this.googleCalendarService = googleCalendarService;
     }
 
     public ShowDTO criar(ShowDTO dto) {
@@ -39,14 +43,49 @@ public class ShowService {
             throw new IllegalStateException("A data " + show.getData() + " está bloqueada na agenda.");
         }
 
-        return toDTO(showRepository.save(show));
+        Show salvo = showRepository.save(show);
+
+        String eventId = googleCalendarService.criarEvento(salvo);
+        if (eventId != null) {
+            salvo.setGoogleEventId(eventId);
+            salvo = showRepository.save(salvo);
+        }
+
+        return toDTO(salvo);
     }
 
     public ShowDTO atualizar(Long id, ShowDTO dto) {
         Show show = showRepository.findById(id)
                 .orElseThrow(() -> new ShowNotFoundException(id));
         atualizarEntidade(show, dto);
-        return toDTO(showRepository.save(show));
+        Show salvo = showRepository.save(show);
+
+        if (salvo.getGoogleEventId() != null) {
+            googleCalendarService.atualizarEvento(salvo);
+        } else {
+            String eventId = googleCalendarService.criarEvento(salvo);
+            if (eventId != null) {
+                salvo.setGoogleEventId(eventId);
+                salvo = showRepository.save(salvo);
+            }
+        }
+
+        return toDTO(salvo);
+    }
+
+    public ShowDTO sincronizarGoogle(Long id) {
+        Show show = showRepository.findById(id)
+                .orElseThrow(() -> new ShowNotFoundException(id));
+        if (show.getGoogleEventId() != null) {
+            googleCalendarService.atualizarEvento(show);
+        } else {
+            String eventId = googleCalendarService.criarEvento(show);
+            if (eventId != null) {
+                show.setGoogleEventId(eventId);
+                show = showRepository.save(show);
+            }
+        }
+        return toDTO(show);
     }
 
     public List<ShowDTO> listarTodos(String dj) {
@@ -88,7 +127,11 @@ public class ShowService {
     }
 
     public void deletar(Long id) {
-        if (!showRepository.existsById(id)) throw new ShowNotFoundException(id);
+        Show show = showRepository.findById(id)
+                .orElseThrow(() -> new ShowNotFoundException(id));
+        if (show.getGoogleEventId() != null) {
+            googleCalendarService.apagarEvento(show.getDj(), show.getGoogleEventId());
+        }
         showRepository.deleteById(id);
     }
 
@@ -171,6 +214,7 @@ public class ShowService {
         dto.setSemCacheYuri(show.getSemCacheYuri());
         dto.setTemProdutor(show.getTemProdutor());
         dto.setValorProdutor(show.getValorProdutor());
+        dto.setGoogleEventId(show.getGoogleEventId());
         return dto;
     }
 }
