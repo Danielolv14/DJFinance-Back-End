@@ -48,6 +48,11 @@ public class ShowController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/sincronizar")
+    public ResponseEntity<ShowDTO> sincronizar(@PathVariable Long id) {
+        return ResponseEntity.ok(showService.sincronizarGoogle(id));
+    }
+
     @DeleteMapping("/duplicados")
     public ResponseEntity<Map<String, Object>> deletarDuplicados(
             @RequestParam(defaultValue = "DRUDS") String dj) {

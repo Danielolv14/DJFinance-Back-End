@@ -44,6 +44,9 @@ public class Show {
     private Boolean temProdutor;
     private Double valorProdutor;
 
+    @Column(length = 512)
+    private String googleEventId;
+
     public Show() {}
 
     public Long getId() { return id; }
@@ -94,4 +97,6 @@ public class Show {
     public void setTemProdutor(Boolean temProdutor) { this.temProdutor = temProdutor; }
     public Double getValorProdutor() { return valorProdutor; }
     public void setValorProdutor(Double valorProdutor) { this.valorProdutor = valorProdutor; }
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
 }
