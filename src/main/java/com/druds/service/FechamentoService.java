@@ -21,7 +21,7 @@ public class FechamentoService {
     private static final double DANIEL_PERCENTUAL_10  = 0.10;
     private static final double DANIEL_PERCENTUAL_20  = 0.20;
     private static final double DANIEL_TRANSPORTE_DIA = 40.0;
-    private static final double DANIEL_SEM_CACHE      = 110.0;
+    private static final double DANIEL_SEM_CACHE      = 70.0;
     private static final double YURI_FIXO_POR_SHOW    = 300.0;
 
     private final ShowRepository showRepository;
