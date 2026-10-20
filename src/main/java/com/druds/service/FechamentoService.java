@@ -39,14 +39,10 @@ public class FechamentoService {
 
         List<Show> shows = showRepository.findByDjAndDataBetweenOrderByDataAsc(djFiltro, inicio, fim);
 
-        List<Show> showsParaDaniel = shows.stream()
-                .filter(s -> s.getSemCacheDaniel() == null || !s.getSemCacheDaniel())
-                .toList();
-
         double totalBruto    = calcularTotalBruto(shows);
         double totalDaniel   = "BRAICHI".equals(djFiltro)
-                ? calcularDanielBraichi(showsParaDaniel)
-                : calcularDanielDruds(showsParaDaniel);
+                ? calcularDanielBraichi(shows)
+                : calcularDanielDruds(shows);
         double totalYuri     = "BRAICHI".equals(djFiltro)
                 ? 0.0
                 : calcularYuriDruds(shows.stream()
@@ -83,9 +79,17 @@ public class FechamentoService {
     }
 
     // ── DRUDS: R$50 fixo (mar-dez 2025), 10% (jan-mar 2026), 20% (abr 2026+) + transporte ──
-    private double calcularDanielDruds(List<Show> showsComEquipe) {
-        List<Show> comEquipe = showsComEquipe.stream()
+    // ── Sem cachê Daniel: só 10% do cachê bruto do show, sem transporte ──
+    private double calcularDanielDruds(List<Show> shows) {
+        List<Show> todosComEquipe = shows.stream()
                 .filter(s -> !s.getData().isBefore(INICIO_EQUIPE)).toList();
+        double pagSemCache = todosComEquipe.stream()
+                .filter(this::semCacheDaniel)
+                .mapToDouble(this::dezPorCentoBruto)
+                .sum();
+
+        List<Show> comEquipe = todosComEquipe.stream()
+                .filter(s -> !semCacheDaniel(s)).toList();
         List<Show> antigos = comEquipe.stream()
                 .filter(s -> s.getData().isBefore(INICIO_PERCENTUAL_DANIEL)).toList();
         List<Show> novos   = comEquipe.stream()
@@ -106,14 +110,22 @@ public class FechamentoService {
         Set<LocalDate> dias = novos.stream().map(Show::getData).collect(Collectors.toSet());
         double transporte   = dias.size() * DANIEL_TRANSPORTE_DIA;
 
-        return pagAntigos + pagNovos + transporte;
+        return pagAntigos + pagNovos + transporte + pagSemCache;
     }
 
-    // ── BRAICHI: 10% do cachê bruto de cada show ──
+    // ── BRAICHI: 10% do cachê bruto de cada show (inclusive sem cachê Daniel) ──
     private double calcularDanielBraichi(List<Show> shows) {
         return shows.stream()
-                .mapToDouble(s -> temCache(s) ? s.getCache() * DANIEL_PERCENTUAL_10 : 0.0)
+                .mapToDouble(this::dezPorCentoBruto)
                 .sum();
+    }
+
+    private double dezPorCentoBruto(Show show) {
+        return temCache(show) ? show.getCache() * DANIEL_PERCENTUAL_10 : 0.0;
+    }
+
+    private boolean semCacheDaniel(Show show) {
+        return Boolean.TRUE.equals(show.getSemCacheDaniel());
     }
 
     private double calcularYuriDruds(List<Show> showsComEquipe) {
