@@ -17,11 +17,9 @@ import java.util.Map;
 public class FechamentoService {
 
     private final ShowRepository showRepository;
-    private final ShowService showService;
 
-    public FechamentoService(ShowRepository showRepository, ShowService showService) {
+    public FechamentoService(ShowRepository showRepository) {
         this.showRepository = showRepository;
-        this.showService = showService;
     }
 
     public FechamentoResponseDTO calcular(int mes, int ano, Double aliquotaImposto, String dj) {
@@ -52,7 +50,7 @@ public class FechamentoService {
         r.setTotalImpostos(totalImpostos);
         r.setTotalProdutor(arredondar(totalProdutor));
         r.setLucroLiquido(arredondar(lucroLiquido));
-        r.setShows(shows.stream().map(showService::toDTO).toList());
+        r.setShows(shows.stream().map(ShowMapper::paraDTO).toList());
         return r;
     }
 

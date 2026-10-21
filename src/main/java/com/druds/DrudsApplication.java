@@ -2,8 +2,10 @@ package com.druds;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class DrudsApplication {
     public static void main(String[] args) {
         SpringApplication.run(DrudsApplication.class, args);

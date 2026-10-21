@@ -36,7 +36,7 @@ class FechamentoServiceTest {
                     djConsultado = (String) args[0];
                     return showsDoMes;
                 });
-        fechamentoService = new FechamentoService(repositorio, new ShowService(null, null, null));
+        fechamentoService = new FechamentoService(repositorio);
     }
 
     private FechamentoResponseDTO fechar(String dj, Double imposto, Show... shows) {

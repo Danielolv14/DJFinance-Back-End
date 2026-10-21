@@ -1,6 +1,7 @@
 package com.druds.service;
 
 import com.druds.model.Show;
+import com.druds.model.StatusShow;
 import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,7 +65,7 @@ public class ImportacaoService {
                     show.setValorAdiantamento(parseCache(get(cols, 10)));
                     show.setContratante(limpar(get(cols, 11)));
                     show.setEndereco(limpar(get(cols, 12)));
-                    show.setStatus(data.isAfter(java.time.LocalDate.now()) ? "PENDENTE" : "CONFIRMADO");
+                    show.setStatus(StatusShow.inicial(data, LocalDate.now()));
 
                     // Ignora shows sem evento válido
                     if (show.getEvento() == null || show.getEvento().isBlank()) continue;
