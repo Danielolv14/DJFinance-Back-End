@@ -1,9 +1,7 @@
 package com.druds.controller;
 
-import com.druds.model.Dj;
-import com.druds.repository.ShowRepository;
+import com.druds.service.NormalizacaoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -12,51 +10,32 @@ import java.util.Map;
 @RequestMapping("/shows")
 public class NormalizacaoController {
 
-    private final ShowRepository showRepository;
+    private final NormalizacaoService normalizacaoService;
 
-    public NormalizacaoController(ShowRepository showRepository) {
-        this.showRepository = showRepository;
+    public NormalizacaoController(NormalizacaoService normalizacaoService) {
+        this.normalizacaoService = normalizacaoService;
     }
 
     @PutMapping("/normalizar-local")
-    @Transactional
     public ResponseEntity<Map<String, Object>> normalizarLocal(
             @RequestBody Map<String, String> body,
             @RequestParam(defaultValue = "DRUDS") String dj) {
-        String de   = body.get("de");
-        String para = body.get("para");
-
-        if (de == null || para == null || de.isBlank() || para.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
-        }
-
-        String djFiltro = Dj.normalizar(dj);
-        int atualizados = showRepository.atualizarEndereco(de, para, djFiltro);
-
-        return ResponseEntity.ok(Map.of(
-            "mensagem", atualizados + " show(s) atualizados de \"" + de + "\" para \"" + para + "\"",
-            "atualizados", atualizados
-        ));
+        int atualizados = normalizacaoService.renomearLocal(body.get("de"), body.get("para"), dj);
+        return ResponseEntity.ok(resposta(atualizados, body));
     }
 
     @PutMapping("/normalizar-contratante")
-    @Transactional
     public ResponseEntity<Map<String, Object>> normalizarContratante(
             @RequestBody Map<String, String> body,
             @RequestParam(defaultValue = "DRUDS") String dj) {
-        String de   = body.get("de");
-        String para = body.get("para");
+        int atualizados = normalizacaoService.renomearContratante(body.get("de"), body.get("para"), dj);
+        return ResponseEntity.ok(resposta(atualizados, body));
+    }
 
-        if (de == null || para == null || de.isBlank() || para.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
-        }
-
-        String djFiltro = Dj.normalizar(dj);
-        int atualizados = showRepository.atualizarContratante(de, para, djFiltro);
-
-        return ResponseEntity.ok(Map.of(
-            "mensagem", atualizados + " show(s) atualizados de \"" + de + "\" para \"" + para + "\"",
+    private Map<String, Object> resposta(int atualizados, Map<String, String> body) {
+        return Map.of(
+            "mensagem", atualizados + " show(s) atualizados de \"" + body.get("de") + "\" para \"" + body.get("para") + "\"",
             "atualizados", atualizados
-        ));
+        );
     }
 }

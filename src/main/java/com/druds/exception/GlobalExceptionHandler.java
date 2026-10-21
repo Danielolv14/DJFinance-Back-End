@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(DadosInvalidosException.class)
+    public ResponseEntity<Map<String, Object>> handleDadosInvalidos(DadosInvalidosException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(DataBloqueadaException.class)
     public ResponseEntity<Map<String, Object>> handleDataBloqueada(DataBloqueadaException ex) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());

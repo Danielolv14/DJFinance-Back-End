@@ -1,51 +1,40 @@
 package com.druds.controller;
 
-import com.druds.model.Dj;
 import com.druds.model.BloqueioAgenda;
-import com.druds.repository.BloqueioAgendaRepository;
+import com.druds.service.BloqueioAgendaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/bloqueios")
 public class BloqueioAgendaController {
 
-    private final BloqueioAgendaRepository bloqueioRepository;
+    private final BloqueioAgendaService bloqueioService;
 
-    public BloqueioAgendaController(BloqueioAgendaRepository bloqueioRepository) {
-        this.bloqueioRepository = bloqueioRepository;
+    public BloqueioAgendaController(BloqueioAgendaService bloqueioService) {
+        this.bloqueioService = bloqueioService;
     }
 
     @GetMapping
     public ResponseEntity<List<BloqueioAgenda>> listar(
             @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
-        return ResponseEntity.ok(bloqueioRepository.findByDj(Dj.normalizar(dj)));
+        return ResponseEntity.ok(bloqueioService.listar(dj));
     }
 
     @PostMapping
-    public ResponseEntity<?> criar(
+    public ResponseEntity<BloqueioAgenda> criar(
             @RequestParam(required = false, defaultValue = "DRUDS") String dj,
             @RequestBody BloqueioAgenda bloqueio) {
-        if (bloqueio.getDataInicio() == null || bloqueio.getDataFim() == null) {
-            return ResponseEntity.badRequest().body(Map.of("mensagem", "Data início e fim são obrigatórias"));
-        }
-        if (bloqueio.getDataFim().isBefore(bloqueio.getDataInicio())) {
-            return ResponseEntity.badRequest().body(Map.of("mensagem", "Data fim não pode ser antes da data início"));
-        }
-        bloqueio.setDj(Dj.normalizar(dj));
-        return ResponseEntity.status(HttpStatus.CREATED).body(bloqueioRepository.save(bloqueio));
+        return ResponseEntity.status(HttpStatus.CREATED).body(bloqueioService.criar(dj, bloqueio));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!bloqueioRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        bloqueioRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return bloqueioService.deletar(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
