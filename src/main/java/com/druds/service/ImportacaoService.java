@@ -135,17 +135,6 @@ public class ImportacaoService {
         return t.isEmpty() || t.equals("-") || t.equals("a definir") || t.equals("false") && v.trim().isEmpty();
     }
 
-    private Integer mesParaNumero(String mes) {
-        if (mes == null) return null;
-        return switch (mes.trim().toUpperCase()) {
-            case "JANEIRO"   -> 1;  case "FEVEREIRO" -> 2;  case "MARÇO"    -> 3;
-            case "ABRIL"     -> 4;  case "MAIO"       -> 5;  case "JUNHO"    -> 6;
-            case "JULHO"     -> 7;  case "AGOSTO"     -> 8;  case "SETEMBRO" -> 9;
-            case "OUTUBRO"   -> 10; case "NOVEMBRO"   -> 11; case "DEZEMBRO" -> 12;
-            default -> null;
-        };
-    }
-
     private String get(String[] cols, int idx) {
         if (idx >= cols.length) return "";
         return cols[idx] == null ? "" : cols[idx].trim();

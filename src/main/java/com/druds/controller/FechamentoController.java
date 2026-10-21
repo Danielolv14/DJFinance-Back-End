@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/fechamento")
-@CrossOrigin(origins = "*")
 public class FechamentoController {
 
     private final FechamentoService fechamentoService;

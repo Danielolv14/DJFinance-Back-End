@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/shows")
-@CrossOrigin(origins = "*")
 public class ShowController {
 
     private final ShowService showService;

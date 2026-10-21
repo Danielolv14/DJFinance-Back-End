@@ -142,11 +142,6 @@ public class ShowService {
         return duplicados.size();
     }
 
-    public Show buscarEntidadePorId(Long id) {
-        return showRepository.findById(id)
-                .orElseThrow(() -> new ShowNotFoundException(id));
-    }
-
     private void atualizarEntidade(Show show, ShowDTO dto) {
         if (dto.getDj() != null && !dto.getDj().isBlank()) {
             show.setDj(dto.getDj().toUpperCase());

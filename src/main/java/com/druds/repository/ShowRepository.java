@@ -32,8 +32,6 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
         @Param("fim") LocalDate fim
     );
 
-    boolean existsByDataAndEvento(LocalDate data, String evento);
-
     @Query("""
         SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END
         FROM Show s

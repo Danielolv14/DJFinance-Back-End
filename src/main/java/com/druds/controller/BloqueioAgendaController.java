@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/bloqueios")
-@CrossOrigin(origins = "*")
 public class BloqueioAgendaController {
 
     private final BloqueioAgendaRepository bloqueioRepository;

@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/shows")
-@CrossOrigin(origins = "*")
 public class ImportacaoController {
 
     private final ImportacaoService importacaoService;

@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/shows")
-@CrossOrigin(origins = "*")
 public class NormalizacaoController {
 
     private final ShowRepository showRepository;
