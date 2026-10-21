@@ -1,198 +1,82 @@
-# DRUDS API — Fechamento Financeiro DJ
+# DJFinance — Back-end
 
-API REST em Spring Boot com PostgreSQL para gerenciar shows e calcular fechamentos mensais.
+API REST do sistema de fechamento financeiro dos DJs **DRUDS** e **Braichi**: shows, agenda,
+estatísticas do CRM e fechamento mensal com o quanto cada pessoa recebe.
 
----
+Spring Boot 3.2 · Java 17 · PostgreSQL · deploy no Railway (push na `main` publica).
 
-## Estrutura do projeto
+## Como rodar
 
-```
-druds-api/
-├── pom.xml
-└── src/main/
-    ├── resources/
-    │   └── application.properties        ← configuração do banco
-    └── java/com/druds/
-        ├── DrudsApplication.java         ← ponto de entrada Spring Boot
-        ├── model/
-        │   ├── Show.java                 ← entidade JPA (tabela: shows)
-        │   ├── Pessoa.java               ← entidade JPA (tabela: pessoas)
-        │   └── FechamentoMensal.java     ← entidade JPA (tabela: fechamentos_mensais)
-        ├── dto/
-        │   ├── ShowDTO.java              ← dados do show nas requisições/respostas
-        │   └── FechamentoResponseDTO.java← resposta do fechamento calculado
-        ├── repository/
-        │   ├── ShowRepository.java       ← acesso ao banco (JPA)
-        │   └── PessoaRepository.java
-        ├── service/
-        │   ├── ShowService.java          ← regras de negócio dos shows
-        │   └── FechamentoService.java    ← cálculo do fechamento mensal
-        ├── controller/
-        │   ├── ShowController.java       ← endpoints REST /shows
-        │   └── FechamentoController.java ← endpoint REST /fechamento
-        └── exception/
-            ├── ShowNotFoundException.java
-            └── GlobalExceptionHandler.java
-```
+1. Crie o banco: `CREATE DATABASE druds_db;`
+2. Defina a senha do banco no ambiente (ela não fica no código):
+   ```bash
+   export SPRING_DATASOURCE_PASSWORD=sua_senha
+   ```
+   `SPRING_DATASOURCE_URL` e `SPRING_DATASOURCE_USERNAME` também podem ser definidas;
+   sem elas, o padrão é `jdbc:postgresql://localhost:5432/druds_db` com o usuário `postgres`.
+3. Rode: `mvn spring-boot:run` (sobe em http://localhost:8080).
 
----
+Testes: `mvn test`. Eles não precisam de banco.
 
-## Pré-requisitos
+## Organização do código (`src/main/java/com/druds`)
 
-- Java 17+
-- Maven 3.6+
-- PostgreSQL instalado e rodando
+| Pasta | O que tem |
+|---|---|
+| `controller/` | Endpoints HTTP. Só recebem a requisição e chamam um service. |
+| `service/` | Regras do sistema (ver abaixo). |
+| `repository/` | Consultas ao banco (Spring Data JPA). |
+| `model/` | Entidades (`Show`, `BloqueioAgenda`) e constantes de domínio (`Dj`, `StatusShow`). |
+| `dto/` | Formatos que trafegam na API. |
+| `exception/` | Erros de negócio e como viram resposta HTTP. |
 
----
+### Services
 
-## Passo a passo para rodar
+| Classe | Responsabilidade |
+|---|---|
+| `RegrasPagamento` | **Quanto Daniel e Yuri recebem em cada show.** Única fonte dessas regras; o front só exibe. |
+| `FechamentoService` | Fechamento do mês: bruto, pagamentos, custos, produtor, imposto e lucro. |
+| `ShowService` / `ShowMapper` | Cadastro, edição, listagem e remoção de shows, com espelho no Google Agenda. |
+| `CorrecaoStatusAgendada` | Ao subir e toda madrugada, acerta o status pela data (futuro = PENDENTE, passado = CONFIRMADO). |
+| `ImportacaoService` / `PlanilhaShowsParser` | Importação da planilha CSV, sem duplicar shows já cadastrados. |
+| `BloqueioAgendaService` | Períodos em que o DJ não aceita shows. |
+| `NormalizacaoService` | Junta grafias diferentes do mesmo local ou contratante (CRM). |
+| `StatsService` | Estatísticas por contratante e por local (CRM). |
+| `GoogleCalendarService` | Cria, atualiza e apaga eventos na agenda do DJ (conta de serviço; falhas não impedem salvar). |
 
-### 1. Criar o banco de dados no PostgreSQL
+## Regras de pagamento (resumo)
 
-Abra o psql ou pgAdmin e execute:
+Detalhes e exemplos em `RegrasPagamento` e `FechamentoServiceTest`.
 
-```sql
-CREATE DATABASE druds_db;
-```
+- **DRUDS, Daniel:** R$ 50 por show em 2025 (a partir de março); a partir de 2026, 10% (jan–mar)
+  ou 20% (abr em diante) de cachê − custos, mais R$ 40 de transporte por dia com show.
+  Show sem cachê preenchido paga R$ 70. "Sem cachê Daniel" marcado: 10% do cachê bruto, sem transporte.
+- **DRUDS, Yuri:** R$ 250 por show a partir de março/2025, salvo "Sem cachê Yuri".
+- **Braichi:** Daniel recebe 10% do cachê bruto; não há Yuri; o produtor externo entra no fechamento.
 
-### 2. Configurar o application.properties
+Shows e bloqueios antigos sem DJ gravado pertencem ao DRUDS.
 
-Edite o arquivo `src/main/resources/application.properties`:
+## Endpoints
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/druds_db
-spring.datasource.username=postgres
-spring.datasource.password=SUA_SENHA_AQUI
-```
+Todos aceitam `?dj=DRUDS|BRAICHI` (padrão DRUDS).
 
-### 3. Compilar e rodar
+| Método | Caminho | O que faz |
+|---|---|---|
+| GET | `/shows` | Lista os shows do DJ, cada um com `pagamentoDaniel` e `pagamentoYuri` |
+| POST | `/shows` | Cadastra (409 se a data estiver bloqueada) |
+| PUT | `/shows/{id}` | Edita |
+| DELETE | `/shows/{id}` | Remove (e apaga o evento do Google Agenda) |
+| DELETE | `/shows/duplicados` | Remove shows repetidos (mesma data e evento) |
+| POST | `/shows/importar` | Importa a planilha CSV (campo `arquivo`) |
+| PUT | `/shows/normalizar-local` · `/shows/normalizar-contratante` | Troca `de` por `para` em todos os shows do DJ |
+| GET | `/fechamento?mes=&ano=&imposto=` | Fechamento do mês (`imposto` em %) |
+| GET | `/stats/contratantes` · `/stats/locais` | Estatísticas do CRM |
+| GET · POST · DELETE | `/bloqueios` · `/bloqueios/{id}` | Bloqueios de agenda |
 
-```bash
-mvn clean package
-java -jar target/druds-api-1.0.0.jar
-```
+Erros de validação voltam como 400 e data bloqueada como 409, sempre com `mensagem`.
 
-Ou direto pelo Maven:
+## Google Agenda
 
-```bash
-mvn spring-boot:run
-```
-
-### 4. Verificar se subiu
-
-Acesse no navegador: http://localhost:8080/shows
-
-Se retornar `[]` (array vazio), está funcionando!
-
----
-
-## Endpoints disponíveis
-
-### Shows
-
-| Método | Endpoint      | Descrição           |
-|--------|--------------|---------------------|
-| POST   | /shows        | Cadastrar show      |
-| GET    | /shows        | Listar todos        |
-| GET    | /shows/{id}   | Buscar por ID       |
-| DELETE | /shows/{id}   | Deletar show        |
-
-### Fechamento
-
-| Método | Endpoint                        | Descrição                    |
-|--------|---------------------------------|------------------------------|
-| GET    | /fechamento?mes=3&ano=2026      | Calcular fechamento do mês   |
-
----
-
-## Exemplos de requisições
-
-### Cadastrar um show
-
-```bash
-curl -X POST http://localhost:8080/shows \
-  -H "Content-Type: application/json" \
-  -d '{
-    "data": "2026-03-06",
-    "valorCache": 700.00,
-    "local": "Chalezinho",
-    "observacoes": "Show das 01:30"
-  }'
-```
-
-Resposta:
-```json
-{
-  "id": 1,
-  "data": "2026-03-06",
-  "valorCache": 700.00,
-  "local": "Chalezinho",
-  "observacoes": "Show das 01:30"
-}
-```
-
-### Cadastrar show sem cachê definido
-
-```bash
-curl -X POST http://localhost:8080/shows \
-  -H "Content-Type: application/json" \
-  -d '{
-    "data": "2026-03-07",
-    "local": "Ouro Minas"
-  }'
-```
-
-Sem `valorCache`, o sistema usa R$110 no cálculo.
-
-### Calcular fechamento de março/2026
-
-```bash
-curl "http://localhost:8080/fechamento?mes=3&ano=2026"
-```
-
-Resposta:
-```json
-{
-  "mes": 3,
-  "ano": 2026,
-  "quantidadeShows": 2,
-  "totalBruto": 810.00,
-  "totalDaniel": 186.50,
-  "totalYuri": 600.00,
-  "lucroLiquido": 23.50,
-  "shows": [
-    {
-      "id": 1,
-      "data": "2026-03-06",
-      "valorCache": 700.00,
-      "local": "Chalezinho",
-      "observacoes": "Show das 01:30"
-    },
-    {
-      "id": 2,
-      "data": "2026-03-07",
-      "valorCache": null,
-      "local": "Ouro Minas",
-      "observacoes": null
-    }
-  ]
-}
-```
-
----
-
-## Regras de negócio implementadas
-
-| Pessoa  | Regra                                                    |
-|---------|----------------------------------------------------------|
-| Daniel  | 15% do cachê + R$40 transporte **por dia** (não por show) |
-| Yuri    | R$300 fixo por show                                      |
-| Cachê   | Se não informado, usa R$110 como padrão                  |
-
-> Detalhe importante: se Daniel fizer 2 shows no mesmo dia, recebe R$40 de transporte uma única vez (não R$80).
-
----
-
-## O que acontece automaticamente
-
-Com `spring.jpa.hibernate.ddl-auto=update`, o Spring Boot cria as tabelas no PostgreSQL sozinho ao iniciar. Você não precisa criar as tabelas manualmente.
+Desligado por padrão. Para ligar, defina no ambiente `GOOGLE_CALENDAR_ENABLED=true`,
+`GOOGLE_CREDENTIALS_JSON` (JSON inteiro da conta de serviço), `GOOGLE_CALENDAR_DRUDS` e
+`GOOGLE_CALENDAR_BRAICHI` (IDs das agendas, compartilhadas com o e-mail da conta de serviço).
+Shows importados por CSV não são enviados à agenda; para enviar, edite e salve o show.
