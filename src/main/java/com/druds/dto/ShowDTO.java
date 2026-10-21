@@ -31,6 +31,10 @@ public class ShowDTO {
     private Double valorProdutor;
     private String googleEventId;
 
+    // Calculados pelo back (RegrasPagamento); só leitura para o front.
+    private Double pagamentoDaniel;
+    private Double pagamentoYuri;
+
     public ShowDTO() {}
 
     public Long getId() { return id; }
@@ -83,4 +87,8 @@ public class ShowDTO {
     public void setValorProdutor(Double valorProdutor) { this.valorProdutor = valorProdutor; }
     public String getGoogleEventId() { return googleEventId; }
     public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
+    public Double getPagamentoDaniel() { return pagamentoDaniel; }
+    public void setPagamentoDaniel(Double pagamentoDaniel) { this.pagamentoDaniel = pagamentoDaniel; }
+    public Double getPagamentoYuri() { return pagamentoYuri; }
+    public void setPagamentoYuri(Double pagamentoYuri) { this.pagamentoYuri = pagamentoYuri; }
 }

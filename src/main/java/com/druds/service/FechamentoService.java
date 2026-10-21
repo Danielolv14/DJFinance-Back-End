@@ -50,7 +50,7 @@ public class FechamentoService {
         r.setTotalImpostos(totalImpostos);
         r.setTotalProdutor(arredondar(totalProdutor));
         r.setLucroLiquido(arredondar(lucroLiquido));
-        r.setShows(shows.stream().map(ShowMapper::paraDTO).toList());
+        r.setShows(ShowMapper.paraDTOs(shows, pagamentos));
         return r;
     }
 

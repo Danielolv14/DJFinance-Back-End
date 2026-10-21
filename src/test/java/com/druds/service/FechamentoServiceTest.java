@@ -198,6 +198,34 @@ class FechamentoServiceTest {
     }
 
     @Nested
+    class PagamentoPorShow {
+
+        @Test
+        void cadaShowTrazQuantoDanielEYuriRecebem() {
+            FechamentoResponseDTO r = fechar("DRUDS", null,
+                    show("2026-05-15", 1000.0, 100.0), semCacheDaniel(show("2026-05-16", 1000.0, null)));
+            assertThat(r.getShows()).extracting("pagamentoDaniel").containsExactly(220.0, 100.0);
+            assertThat(r.getShows()).extracting("pagamentoYuri").containsExactly(250.0, 250.0);
+        }
+
+        @Test
+        void transporteDoDiaFicaSoNoPrimeiroShowDoDia() {
+            FechamentoResponseDTO r = fechar("DRUDS", null,
+                    show("2026-05-15", 1000.0, null), show("2026-05-15", 500.0, null));
+            assertThat(r.getShows()).extracting("pagamentoDaniel").containsExactly(240.0, 100.0);
+        }
+
+        @Test
+        void somaDosShowsBateComOTotal() {
+            FechamentoResponseDTO r = fechar("DRUDS", null,
+                    show("2025-06-15", 1000.0, null), show("2026-02-10", 800.0, 50.0),
+                    show("2026-05-15", null, null), semCacheDaniel(show("2026-05-15", 1000.0, null)));
+            double soma = r.getShows().stream().mapToDouble(s -> s.getPagamentoDaniel()).sum();
+            assertThat(soma).isEqualTo(r.getTotalDaniel());
+        }
+    }
+
+    @Nested
     class Totais {
 
         @Test

@@ -39,19 +39,18 @@ public class ShowService {
         if (bloqueioRepository.existeConflito(show.getData(), Dj.normalizar(show.getDj()))) {
             throw new DataBloqueadaException(show.getData());
         }
-        return ShowMapper.paraDTO(salvarESincronizar(show));
+        return paraDTO(salvarESincronizar(show));
     }
 
     public ShowDTO atualizar(Long id, ShowDTO dto) {
         Show show = buscar(id);
         ShowMapper.copiarParaEntidade(dto, show);
-        return ShowMapper.paraDTO(salvarESincronizar(show));
+        return paraDTO(salvarESincronizar(show));
     }
 
     public List<ShowDTO> listarTodos(String dj) {
-        return showRepository.findByDjOrderByDataAsc(Dj.normalizar(dj)).stream()
-                .map(ShowMapper::paraDTO)
-                .toList();
+        String djFiltro = Dj.normalizar(dj);
+        return ShowMapper.paraDTOs(showRepository.findByDjOrderByDataAsc(djFiltro), djFiltro);
     }
 
     public void deletar(Long id) {
@@ -95,6 +94,11 @@ public class ShowService {
         show.setMes(mes);
         show.setAno(ano);
         return mudou;
+    }
+
+    /** Show isolado: o transporte do dia aparece nele, mesmo que haja outro show na mesma data. */
+    private ShowDTO paraDTO(Show show) {
+        return ShowMapper.paraDTOs(List.of(show), show.getDj()).get(0);
     }
 
     private Show buscar(Long id) {

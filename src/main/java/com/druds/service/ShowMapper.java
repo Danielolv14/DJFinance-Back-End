@@ -3,6 +3,10 @@ package com.druds.service;
 import com.druds.dto.ShowDTO;
 import com.druds.model.Dj;
 import com.druds.model.Show;
+import com.druds.service.RegrasPagamento.Pagamento;
+
+import java.util.List;
+import java.util.Map;
 
 /** Converte entre a entidade {@link Show} e o {@link ShowDTO} que trafega na API. */
 final class ShowMapper {
@@ -45,7 +49,27 @@ final class ShowMapper {
         show.setValorProdutor(dto.getValorProdutor());
     }
 
-    static ShowDTO paraDTO(Show show) {
+    /** Converte uma lista de shows do mesmo DJ, já com quanto Daniel e Yuri recebem em cada um. */
+    static List<ShowDTO> paraDTOs(List<Show> shows, String dj) {
+        return paraDTOs(shows, RegrasPagamento.calcular(shows, dj));
+    }
+
+    static List<ShowDTO> paraDTOs(List<Show> shows, Map<Show, Pagamento> pagamentos) {
+        return shows.stream().map(s -> paraDTO(s, pagamentos.get(s))).toList();
+    }
+
+    static ShowDTO paraDTO(Show show, Pagamento pagamento) {
+        ShowDTO dto = paraDTO(show);
+        dto.setPagamentoDaniel(arredondar(pagamento.daniel()));
+        dto.setPagamentoYuri(arredondar(pagamento.yuri()));
+        return dto;
+    }
+
+    private static double arredondar(double v) {
+        return Math.round(v * 100.0) / 100.0;
+    }
+
+    private static ShowDTO paraDTO(Show show) {
         ShowDTO dto = new ShowDTO();
         dto.setId(show.getId());
         dto.setDj(show.getDj() != null ? show.getDj() : Dj.DRUDS);
