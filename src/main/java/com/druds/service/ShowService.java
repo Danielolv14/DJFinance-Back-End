@@ -73,21 +73,6 @@ public class ShowService {
         return toDTO(salvo);
     }
 
-    public ShowDTO sincronizarGoogle(Long id) {
-        Show show = showRepository.findById(id)
-                .orElseThrow(() -> new ShowNotFoundException(id));
-        if (show.getGoogleEventId() != null) {
-            googleCalendarService.atualizarEvento(show);
-        } else {
-            String eventId = googleCalendarService.criarEvento(show);
-            if (eventId != null) {
-                show.setGoogleEventId(eventId);
-                show = showRepository.save(show);
-            }
-        }
-        return toDTO(show);
-    }
-
     public List<ShowDTO> listarTodos(String dj) {
         String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
         LocalDate hoje = LocalDate.now();
@@ -119,11 +104,6 @@ public class ShowService {
         }
 
         return shows.stream().map(this::toDTO).toList();
-    }
-
-    public ShowDTO buscarPorId(Long id) {
-        return toDTO(showRepository.findById(id)
-                .orElseThrow(() -> new ShowNotFoundException(id)));
     }
 
     public void deletar(Long id) {

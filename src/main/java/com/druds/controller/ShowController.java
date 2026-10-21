@@ -36,20 +36,10 @@ public class ShowController {
         return ResponseEntity.ok(showService.listarTodos(dj));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ShowDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(showService.buscarPorId(id));
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         showService.deletar(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/sincronizar")
-    public ResponseEntity<ShowDTO> sincronizar(@PathVariable Long id) {
-        return ResponseEntity.ok(showService.sincronizarGoogle(id));
     }
 
     @DeleteMapping("/duplicados")

@@ -1,22 +1,15 @@
 package com.druds.service;
 
-import com.druds.dto.ProjecaoDTO;
 import com.druds.dto.StatsDTO;
 import com.druds.model.Show;
 import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class StatsService {
-
-    private static final String[] MESES = {
-        "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-        "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
-    };
 
     private final ShowRepository showRepository;
 
@@ -32,37 +25,6 @@ public class StatsService {
     public List<StatsDTO> statsPorLocal(String dj) {
         List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
         return agruparPorCampo(todos, s -> s.getEndereco() != null ? s.getEndereco() : s.getContratante());
-    }
-
-    public List<ProjecaoDTO> projecaoFaturamento(String dj) {
-        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
-        LocalDate hoje   = LocalDate.now();
-        List<ProjecaoDTO> resultado = new ArrayList<>();
-
-        for (int delta = -3; delta <= 5; delta++) {
-            LocalDate ref = hoje.withDayOfMonth(1).plusMonths(delta);
-            int mes = ref.getMonthValue();
-            int ano = ref.getYear();
-
-            List<Show> showsDoMes = todos.stream()
-                    .filter(s -> s.getMes() != null && s.getAno() != null)
-                    .filter(s -> s.getMes() == mes && s.getAno() == ano)
-                    .filter(s -> !"CANCELADO".equals(s.getStatus()))
-                    .toList();
-
-            double total = showsDoMes.stream()
-                    .mapToDouble(s -> s.getCache() != null && s.getCache() > 0 ? s.getCache() : 0.0)
-                    .sum();
-
-            resultado.add(new ProjecaoDTO(
-                mes, ano, MESES[mes-1] + "/" + ano,
-                Math.round(total * 100.0) / 100.0,
-                showsDoMes.size(),
-                ref.isBefore(hoje.withDayOfMonth(1))
-            ));
-        }
-
-        return resultado;
     }
 
     private String normalizarDj(String dj) {

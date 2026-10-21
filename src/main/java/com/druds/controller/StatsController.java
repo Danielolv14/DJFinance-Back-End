@@ -1,6 +1,5 @@
 package com.druds.controller;
 
-import com.druds.dto.ProjecaoDTO;
 import com.druds.dto.StatsDTO;
 import com.druds.service.StatsService;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +27,5 @@ public class StatsController {
     public ResponseEntity<List<StatsDTO>> locais(
             @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
         return ResponseEntity.ok(statsService.statsPorLocal(dj));
-    }
-
-    @GetMapping("/projecao")
-    public ResponseEntity<List<ProjecaoDTO>> projecao(
-            @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
-        return ResponseEntity.ok(statsService.projecaoFaturamento(dj));
     }
 }
