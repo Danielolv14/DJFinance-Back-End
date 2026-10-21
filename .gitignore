@@ -1,0 +1,14 @@
+# Build do Maven
+target/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Variáveis locais
+.env
