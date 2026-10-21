@@ -1,5 +1,6 @@
 package com.druds.controller;
 
+import com.druds.model.Dj;
 import com.druds.model.BloqueioAgenda;
 import com.druds.repository.BloqueioAgendaRepository;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class BloqueioAgendaController {
     @GetMapping
     public ResponseEntity<List<BloqueioAgenda>> listar(
             @RequestParam(required = false, defaultValue = "DRUDS") String dj) {
-        return ResponseEntity.ok(bloqueioRepository.findByDj(dj.toUpperCase()));
+        return ResponseEntity.ok(bloqueioRepository.findByDj(Dj.normalizar(dj)));
     }
 
     @PostMapping
@@ -35,7 +36,7 @@ public class BloqueioAgendaController {
         if (bloqueio.getDataFim().isBefore(bloqueio.getDataInicio())) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Data fim não pode ser antes da data início"));
         }
-        bloqueio.setDj(dj.toUpperCase());
+        bloqueio.setDj(Dj.normalizar(dj));
         return ResponseEntity.status(HttpStatus.CREATED).body(bloqueioRepository.save(bloqueio));
     }
 

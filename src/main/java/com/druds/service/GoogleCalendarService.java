@@ -1,5 +1,6 @@
 package com.druds.service;
 
+import com.druds.model.Dj;
 import com.druds.model.Show;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -118,8 +119,8 @@ public class GoogleCalendarService {
     }
 
     private String calendarId(String dj) {
-        String d = (dj == null ? "DRUDS" : dj.trim().toUpperCase());
-        return "BRAICHI".equals(d) ? calendarBraichi : calendarDruds;
+        String d = Dj.normalizar(dj == null ? null : dj.trim());
+        return Dj.BRAICHI.equals(d) ? calendarBraichi : calendarDruds;
     }
 
     private boolean ativo(String calendarId) {

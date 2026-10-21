@@ -2,6 +2,7 @@ package com.druds.service;
 
 import com.druds.dto.ShowDTO;
 import com.druds.exception.ShowNotFoundException;
+import com.druds.model.Dj;
 import com.druds.model.Show;
 import com.druds.repository.BloqueioAgendaRepository;
 import com.druds.repository.ShowRepository;
@@ -30,7 +31,7 @@ public class ShowService {
         Show show = toEntity(dto);
 
         if (show.getDj() == null || show.getDj().isBlank()) {
-            show.setDj("DRUDS");
+            show.setDj(Dj.DRUDS);
         }
 
         if (show.getStatus() == null || show.getStatus().isBlank()) {
@@ -38,7 +39,7 @@ public class ShowService {
             show.setStatus(show.getData().isAfter(hoje) ? "PENDENTE" : "CONFIRMADO");
         }
 
-        String djShow = (show.getDj() == null || show.getDj().isBlank()) ? "DRUDS" : show.getDj();
+        String djShow = Dj.normalizar(show.getDj());
         if (bloqueioRepository.existeConflito(show.getData(), djShow)) {
             throw new IllegalStateException("A data " + show.getData() + " está bloqueada na agenda.");
         }
@@ -74,7 +75,7 @@ public class ShowService {
     }
 
     public List<ShowDTO> listarTodos(String dj) {
-        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
+        String djFiltro = Dj.normalizar(dj);
         LocalDate hoje = LocalDate.now();
         List<Show> shows = showRepository.findByDjOrderByDataAsc(djFiltro);
 
@@ -116,7 +117,7 @@ public class ShowService {
     }
 
     public int deletarDuplicados(String dj) {
-        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
+        String djFiltro = Dj.normalizar(dj);
         List<Show> duplicados = showRepository.findDuplicados(djFiltro);
         showRepository.deleteAll(duplicados);
         return duplicados.size();
@@ -124,9 +125,9 @@ public class ShowService {
 
     private void atualizarEntidade(Show show, ShowDTO dto) {
         if (dto.getDj() != null && !dto.getDj().isBlank()) {
-            show.setDj(dto.getDj().toUpperCase());
+            show.setDj(Dj.normalizar(dto.getDj()));
         } else if (show.getDj() == null) {
-            show.setDj("DRUDS");
+            show.setDj(Dj.DRUDS);
         }
         show.setNome(dto.getNome());
         show.setData(dto.getData());
@@ -166,7 +167,7 @@ public class ShowService {
     public ShowDTO toDTO(Show show) {
         ShowDTO dto = new ShowDTO();
         dto.setId(show.getId());
-        dto.setDj(show.getDj() != null ? show.getDj() : "DRUDS");
+        dto.setDj(show.getDj() != null ? show.getDj() : Dj.DRUDS);
         dto.setNome(show.getNome());
         dto.setData(show.getData());
         dto.setAno(show.getAno());

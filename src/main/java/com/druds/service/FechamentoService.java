@@ -1,6 +1,7 @@
 package com.druds.service;
 
 import com.druds.dto.FechamentoResponseDTO;
+import com.druds.model.Dj;
 import com.druds.model.Show;
 import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
@@ -33,24 +34,24 @@ public class FechamentoService {
     }
 
     public FechamentoResponseDTO calcular(int mes, int ano, Double aliquotaImposto, String dj) {
-        String djFiltro = (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
+        String djFiltro = Dj.normalizar(dj);
         LocalDate inicio = LocalDate.of(ano, mes, 1);
         LocalDate fim    = inicio.withDayOfMonth(inicio.lengthOfMonth());
 
         List<Show> shows = showRepository.findByDjAndDataBetweenOrderByDataAsc(djFiltro, inicio, fim);
 
         double totalBruto    = calcularTotalBruto(shows);
-        double totalDaniel   = "BRAICHI".equals(djFiltro)
+        double totalDaniel   = Dj.BRAICHI.equals(djFiltro)
                 ? calcularDanielBraichi(shows)
                 : calcularDanielDruds(shows);
-        double totalYuri     = "BRAICHI".equals(djFiltro)
+        double totalYuri     = Dj.BRAICHI.equals(djFiltro)
                 ? 0.0
                 : calcularYuriDruds(shows.stream()
                         .filter(s -> !s.getData().isBefore(INICIO_EQUIPE))
                         .filter(s -> s.getSemCacheYuri() == null || !s.getSemCacheYuri())
                         .toList());
         double totalCustos    = calcularTotalCustos(shows);
-        double totalProdutor  = "BRAICHI".equals(djFiltro) ? calcularTotalProdutor(shows) : 0.0;
+        double totalProdutor  = Dj.BRAICHI.equals(djFiltro) ? calcularTotalProdutor(shows) : 0.0;
         double totalImpostos  = aliquotaImposto != null
                 ? arredondar(totalBruto * (aliquotaImposto / 100.0))
                 : 0.0;

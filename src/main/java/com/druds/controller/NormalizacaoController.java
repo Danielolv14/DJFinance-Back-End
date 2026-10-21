@@ -1,5 +1,6 @@
 package com.druds.controller;
 
+import com.druds.model.Dj;
 import com.druds.repository.ShowRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class NormalizacaoController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
         }
 
-        String djFiltro = dj.toUpperCase();
+        String djFiltro = Dj.normalizar(dj);
         int atualizados = showRepository.atualizarEndereco(de, para, djFiltro);
 
         return ResponseEntity.ok(Map.of(
@@ -50,7 +51,7 @@ public class NormalizacaoController {
             return ResponseEntity.badRequest().body(Map.of("mensagem", "Campos 'de' e 'para' são obrigatórios"));
         }
 
-        String djFiltro = dj.toUpperCase();
+        String djFiltro = Dj.normalizar(dj);
         int atualizados = showRepository.atualizarContratante(de, para, djFiltro);
 
         return ResponseEntity.ok(Map.of(

@@ -1,6 +1,7 @@
 package com.druds.service;
 
 import com.druds.dto.StatsDTO;
+import com.druds.model.Dj;
 import com.druds.model.Show;
 import com.druds.repository.ShowRepository;
 import org.springframework.stereotype.Service;
@@ -18,17 +19,13 @@ public class StatsService {
     }
 
     public List<StatsDTO> statsPorContratante(String dj) {
-        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
+        List<Show> todos = showRepository.findByDjOrderByDataAsc(Dj.normalizar(dj));
         return agruparPorCampo(todos, Show::getContratante);
     }
 
     public List<StatsDTO> statsPorLocal(String dj) {
-        List<Show> todos = showRepository.findByDjOrderByDataAsc(normalizarDj(dj));
+        List<Show> todos = showRepository.findByDjOrderByDataAsc(Dj.normalizar(dj));
         return agruparPorCampo(todos, s -> s.getEndereco() != null ? s.getEndereco() : s.getContratante());
-    }
-
-    private String normalizarDj(String dj) {
-        return (dj == null || dj.isBlank()) ? "DRUDS" : dj.toUpperCase();
     }
 
     private List<StatsDTO> agruparPorCampo(List<Show> todos, java.util.function.Function<Show,String> campo) {

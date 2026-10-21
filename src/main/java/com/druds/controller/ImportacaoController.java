@@ -1,5 +1,6 @@
 package com.druds.controller;
 
+import com.druds.model.Dj;
 import com.druds.service.ImportacaoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class ImportacaoController {
             @RequestParam("arquivo") MultipartFile arquivo,
             @RequestParam(value = "dj", defaultValue = "DRUDS") String dj) {
         try {
-            var resultado = importacaoService.importarCSV(arquivo, dj.toUpperCase());
+            var resultado = importacaoService.importarCSV(arquivo, Dj.normalizar(dj));
             return ResponseEntity.ok(Map.of(
                 "importados", resultado.importados(),
                 "erros",      resultado.erros(),
