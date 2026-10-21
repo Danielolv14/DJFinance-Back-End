@@ -1,23 +1,25 @@
 package com.druds.service;
 
+import com.druds.model.Dj;
 import com.druds.model.Show;
-import com.druds.model.StatusShow;
 import com.druds.repository.ShowRepository;
+import com.druds.service.PlanilhaShowsParser.LinhaLida;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Importa shows da planilha CSV, pulando os que já existem para o DJ (mesma data e evento).
+ * Os shows importados não são enviados ao Google Agenda.
+ */
 @Service
 public class ImportacaoService {
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public record ImportacaoResultado(int importados, List<String> erros) {}
 
     private final ShowRepository showRepository;
 
@@ -25,147 +27,21 @@ public class ImportacaoService {
         this.showRepository = showRepository;
     }
 
-    public ImportacaoResultado importarCSV(MultipartFile arquivo, String dj) throws Exception {
-        List<Show> importados = new ArrayList<>();
-        List<String> erros    = new ArrayList<>();
-        int linha = 0;
+    public ImportacaoResultado importarCSV(MultipartFile arquivo, String dj) throws IOException {
+        String djShow = Dj.normalizar(dj);
+        List<Show> novos = new ArrayList<>();
+        List<String> avisos = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(arquivo.getInputStream(), StandardCharsets.UTF_8))) {
-
-            String row;
-            while ((row = br.readLine()) != null) {
-                linha++;
-                // Pula cabeçalho e linhas vazias
-                if (linha <= 4) continue;
-                if (row.isBlank()) continue;
-
-                String[] cols = parsearLinhaCSV(row);
-
-                // Coluna 1 = data — se vazia, pula
-                String rawData = get(cols, 1);
-                if (vazio(rawData)) continue;
-
-                LocalDate data = parseData(rawData);
-                if (data == null) continue;
-
-                try {
-                    Show show = new Show();
-                    show.setDj(dj);
-                    show.setData(data);
-                    show.setAno(data.getYear());
-                    show.setMes(data.getMonthValue());
-
-                    show.setEvento(limpar(get(cols, 4)));
-                    show.setHoraInicio(horaValida(get(cols, 5)));
-                    show.setDuracao(duracaoValida(get(cols, 6)));
-                    show.setCache(parseCache(get(cols, 7)));
-                    show.setXdj(parseBoolean(get(cols, 8)));
-                    show.setAdiantamento(parseBoolean(get(cols, 9)));
-                    show.setValorAdiantamento(parseCache(get(cols, 10)));
-                    show.setContratante(limpar(get(cols, 11)));
-                    show.setEndereco(limpar(get(cols, 12)));
-                    show.setStatus(StatusShow.inicial(data, LocalDate.now()));
-
-                    // Ignora shows sem evento válido
-                    if (show.getEvento() == null || show.getEvento().isBlank()) continue;
-
-                    // Ignora duplicatas dentro do mesmo DJ
-                    if (showRepository.existsByDataAndEventoParaDj(show.getData(), show.getEvento(), dj)) {
-                        erros.add("Linha " + linha + ": duplicado — " + show.getEvento() + " em " + rawData);
-                        continue;
-                    }
-
-                    importados.add(show);
-                } catch (Exception e) {
-                    erros.add("Linha " + linha + ": " + e.getMessage());
-                }
+        for (LinhaLida linha : PlanilhaShowsParser.ler(arquivo.getInputStream(), djShow, LocalDate.now())) {
+            Show show = linha.show();
+            if (showRepository.existsByDataAndEventoParaDj(show.getData(), show.getEvento(), djShow)) {
+                avisos.add("Linha " + linha.numero() + ": duplicado — " + show.getEvento() + " em " + linha.dataOriginal());
+                continue;
             }
+            novos.add(show);
         }
 
-        showRepository.saveAll(importados);
-        return new ImportacaoResultado(importados.size(), erros);
+        showRepository.saveAll(novos);
+        return new ImportacaoResultado(novos.size(), avisos);
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private LocalDate parseData(String raw) {
-        try { return LocalDate.parse(raw.trim(), FMT); }
-        catch (Exception e) { return null; }
-    }
-
-    private Double parseCache(String raw) {
-        if (vazio(raw)) return null;
-        String limpo = raw.replaceAll("R\\$", "")
-                          .replaceAll("\\s+", "")
-                          .replace(".", "")
-                          .replace(",", ".")
-                          .trim();
-        try {
-            double v = Double.parseDouble(limpo);
-            return v > 0 ? v : null;
-        } catch (Exception e) { return null; }
-    }
-
-    private Boolean parseBoolean(String raw) {
-        if (raw == null) return false;
-        return raw.trim().equalsIgnoreCase("TRUE");
-    }
-
-    private String horaValida(String raw) {
-        if (vazio(raw)) return null;
-        String h = raw.trim();
-        if (h.matches("\\d{2}:\\d{2}")) return h;
-        return null;
-    }
-
-    private String duracaoValida(String raw) {
-        if (vazio(raw)) return null;
-        return raw.trim();
-    }
-
-    private String limpar(String raw) {
-        if (vazio(raw)) return null;
-        String s = raw.trim().replaceAll("[\\p{So}\\p{Cn}]", "").trim();
-        return s.isBlank() ? null : s;
-    }
-
-    private boolean vazio(String v) {
-        if (v == null) return true;
-        String t = v.trim().toLowerCase();
-        return t.isEmpty() || t.equals("-") || t.equals("a definir") || t.equals("false") && v.trim().isEmpty();
-    }
-
-    private String get(String[] cols, int idx) {
-        if (idx >= cols.length) return "";
-        return cols[idx] == null ? "" : cols[idx].trim();
-    }
-
-    private String[] parsearLinhaCSV(String linha) {
-        List<String> resultado = new ArrayList<>();
-        StringBuilder campo = new StringBuilder();
-        boolean dentroAspas = false;
-
-        for (int i = 0; i < linha.length(); i++) {
-            char c = linha.charAt(i);
-            if (c == '"') {
-                if (dentroAspas && i+1 < linha.length() && linha.charAt(i+1) == '"') {
-                    campo.append('"'); i++;
-                } else {
-                    dentroAspas = !dentroAspas;
-                }
-            } else if (c == ',' && !dentroAspas) {
-                resultado.add(campo.toString());
-                campo = new StringBuilder();
-            } else {
-                campo.append(c);
-            }
-        }
-        resultado.add(campo.toString());
-        return resultado.toArray(new String[0]);
-    }
-
-    // ── Resultado ─────────────────────────────────────────────────────────────
-
-    public record ImportacaoResultado(int importados, List<String> erros) {}
 }
